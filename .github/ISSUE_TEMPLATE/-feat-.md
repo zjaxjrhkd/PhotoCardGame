@@ -1,7 +1,7 @@
 ---
 name: "[Feat]"
 about: 개발이 필요한 부분 적기
-title: ''
+title: "[Feat]"
 labels: Feat
 assignees: zjaxjrhkd
 
