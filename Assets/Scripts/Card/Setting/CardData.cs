@@ -5,21 +5,8 @@ using UnityEngine;
 public class CardData : MonoBehaviour
 {
     public int cardId;
-    public string cardName; 
-    // Start is called before the first frame update
-    void Start()
-    {
+    public string cardName;
 
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void CardDataClicked()
-    {
-
-    }
+    public enum CardType { Character, Buff }
+    public CardType cardType;
 }

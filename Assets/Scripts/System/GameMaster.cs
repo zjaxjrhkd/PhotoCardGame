@@ -7,19 +7,16 @@ using System.Linq;
 
 public class GameMaster : MonoBehaviour
 {
-    enum GameState { Set, Draw, Select, Check, Drop, End }
+    enum GameState { Set, Draw, Select, Check, Drop, Shop, End }
 
-    // 점수 및 상태
     public int score;
     private GameState gameState;
 
-    // 횟수 관리
     private int currentSetCount;
     private int currentDropCount;
     private int maxSetCount = 3;
     private int maxDropCount = 3;
 
-    // 카드 관련 리스트
     public int drawCardEa;
     public List<int> deckList;
     public List<int> drawCardList;
@@ -27,23 +24,20 @@ public class GameMaster : MonoBehaviour
     public List<GameObject> checkCardList;
     public List<GameObject> dropCardList;
     public List<GameObject> selectCardList;
+    public List<GameObject> buffCardList;
 
-    // UI
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI resultText;
     public TextMeshProUGUI setCountText;
     public TextMeshProUGUI dropCountText;
 
-    // 컴포넌트 참조
     public CardSpawner cardSpawner;
     private ScoreCalculator scoreCalculator;
     private StageManager stageManager;
 
-    // 카드 클릭 상태 추적
     private CardState cardStateRead;
     private CardData cardDataRead;
 
-    // 스테이지
     private string stageMessage;
     private bool isStageCleared;
     private int stageIndex;
@@ -54,10 +48,14 @@ public class GameMaster : MonoBehaviour
     float baseZ = -1f;
     float zStep = 0.1f;
 
-    // 이미지 관련
-    public SpriteListSO stageImageListSO; // 스테이지별 이미지 목록
-    public UnityEngine.UI.Image stageUIImage; // 바꿀 UI 이미지
+    public SpriteListSO stageImageListSO;
+    public UnityEngine.UI.Image stageUIImage;
 
+    public int coin;
+    public TextMeshProUGUI coinText;
+    public ShopManager shopManager;
+
+    public BuffCardListSO buffCardListSO;
 
     void Start()
     {
@@ -66,10 +64,18 @@ public class GameMaster : MonoBehaviour
         SetCardList();
         SetDeckSuffle();
         SetScore();
+        buffCardList = new List<GameObject>();
         StartGame();
     }
 
-    void Update() => RunGameFlow();
+    void Update()
+    {
+        RunGameFlow();
+        if (gameState == GameState.Shop)
+        {
+            DetectBuffCardClick();
+        }
+    }
 
     public void SetGameState()
     {
@@ -89,12 +95,87 @@ public class GameMaster : MonoBehaviour
         score = 0;
         InitStageCount();
         SetCardList();
+        
         UpdateScoreUI();
         UpdateCountUI();
         UpdateStageImage();
+
         Debug.Log("게임 시작, 상태: " + gameState);
     }
 
+    private void DetectBuffCardClick()
+    {
+        if (!Input.GetMouseButtonDown(0)) return;
+
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+
+        if (hit.collider == null) return;
+
+        CardData data = hit.collider.GetComponent<CardData>();
+        if (data == null || data.cardType != CardData.CardType.Buff) return;
+
+        if (coin < 3)
+        {
+            Debug.Log("코인이 부족합니다.");
+            return;
+        }
+
+        SpendCoin(3);
+
+        GameObject clickedCard = data.gameObject;
+        clickedCard.SetActive(false); // 상점에서 제거
+
+        GameObject newCard = Instantiate(clickedCard); // 복사본 생성
+        buffCardList.Add(newCard);
+        RearrangeBuffCards();
+
+        Debug.Log($"버프 카드 구매 완료: {newCard.name}");
+    }
+
+    private void RearrangeBuffCards()
+    {
+        float minX = -3f;
+        float maxX = 5f;
+        float y = 3.19f;
+        float z = -0.1f;
+
+        int count = buffCardList.Count;
+        if (count == 0) return;
+
+        float spacing = (count > 1) ? (maxX - minX) / (count - 1) : 0f;
+
+        for (int i = 0; i < count; i++)
+        {
+            GameObject card = buffCardList[i];
+            card.SetActive(true);
+            card.transform.position = new Vector3(minX + spacing * i, y, z);
+        }
+    }
+
+
+    public void BuyBuffCardById(int cardId)
+    {
+        if (buffCardListSO == null || cardId < 0 || cardId >= buffCardListSO.buffCards.Count)
+        {
+            Debug.LogWarning("잘못된 카드 ID");
+            return;
+        }
+
+        if (coin < 3)
+        {
+            Debug.Log("코인이 부족합니다.");
+            return;
+        }
+
+        SpendCoin(3);
+
+        GameObject prefab = buffCardListSO.buffCards[cardId];
+        buffCardList.Add(prefab);
+
+        Debug.Log($"버프 카드 {prefab.name} 구매 완료");
+        RearrangeBuffCards();
+    }
 
     public void InitStageCount()
     {
@@ -110,6 +191,7 @@ public class GameMaster : MonoBehaviour
         scoreCalculator = GetComponent<ScoreCalculator>();
         stageManager = GetComponent<StageManager>();
         stageManager.Initialize();
+        shopManager = GetComponent<ShopManager>();
     }
 
     public void SetCardList()
@@ -146,7 +228,7 @@ public class GameMaster : MonoBehaviour
 
     private void UpdateStageImage()
     {
-        int stageIndex = stageManager.GetCurrentStageIndex(); // ← 이게 이제 정상 작동
+        int stageIndex = stageManager.GetCurrentStageIndex();
 
         if (stageImageListSO != null && stageImageListSO.sprites.Count > stageIndex)
         {
@@ -164,6 +246,12 @@ public class GameMaster : MonoBehaviour
         return gameState == GameState.Draw;
     }
 
+    public void OnNextStageButtonPressed()
+    {
+        Debug.Log("다음 스테이지 버튼 클릭됨");
+        shopManager.CloseShop();
+        StartGame();
+    }
 
     void RunGameFlow()
     {
@@ -173,9 +261,14 @@ public class GameMaster : MonoBehaviour
                 DrawCard();
                 gameState = GameState.Select;
                 break;
+
             case GameState.Select:
                 ClickCard();
                 break;
+
+            case GameState.Shop:
+                break;
+
             case GameState.End:
                 Debug.Log("게임 종료 상태");
                 break;
@@ -199,6 +292,7 @@ public class GameMaster : MonoBehaviour
         playCardList.AddRange(spawnedCards);
         ArrangeCardsWithinRange();
     }
+
     public void OnSetButtonPressed()
     {
         if (checkCardList.Count == 0)
@@ -213,13 +307,10 @@ public class GameMaster : MonoBehaviour
             return;
         }
 
-        // 카드 정렬
         ArrangeCardsInRange(checkCardList, -3.65f, 5f, 0f, -0.1f);
 
-        // 선택된 카드의 효과 호출
         foreach (GameObject card in checkCardList)
         {
-            // 카드 내부에서 CardData를 포함한 컴포넌트를 탐색
             CardData cardData = card.GetComponentInChildren<CardData>();
             if (cardData == null)
             {
@@ -227,19 +318,19 @@ public class GameMaster : MonoBehaviour
                 continue;
             }
 
-            string scriptName = cardData.cardName; // 예: "Beldir"
+            string scriptName = cardData.cardName;
 
             System.Type type = System.Type.GetType(scriptName);
             if (type == null)
             {
-                Debug.LogWarning($"{scriptName} 타입을 찾을 수 없습니다. 네임스페이스 포함 여부 확인.");
+                Debug.LogWarning($"{scriptName} 타입을 찾을 수 없습니다.");
                 continue;
             }
 
             Component effectScript = cardData.GetComponent(type);
             if (effectScript == null)
             {
-                Debug.LogWarning($"{scriptName} 스크립트를 CardData가 붙은 오브젝트에서 찾을 수 없습니다.");
+                Debug.LogWarning($"{scriptName} 스크립트를 찾을 수 없습니다.");
                 continue;
             }
 
@@ -255,19 +346,8 @@ public class GameMaster : MonoBehaviour
             }
         }
 
-        // 카드 ID 추출
-        List<int> selectedCardIds = checkCardList
-            .Select(card => card.GetComponent<CardData>()?.cardId ?? -1)
-            .Where(id => id > 0)
-            .ToList();
-
-        // 1. 버프 카드 점수 처리
         ApplyBuffCards();
-
-        // 2. 개별 카드 점수 효과 실행 (예: Beldir, Iana 등)
         ApplyCardEffects();
-
-        // 3. 조합 점수 계산
         ApplyCollectorCombos();
 
         UpdateScoreUI();
@@ -281,14 +361,16 @@ public class GameMaster : MonoBehaviour
             var buffs = card.GetComponentsInChildren<IBuffCard>();
             foreach (var buff in buffs)
             {
-                buff.ApplyBuff(this); // GameMaster에 점수 적용
+                buff.ApplyBuff(this);
             }
         }
     }
+
     public interface IBuffCard
     {
-        void ApplyBuff(GameMaster game); // 예: game.score *= 2;
+        void ApplyBuff(GameMaster game);
     }
+
     private void ApplyCardEffects()
     {
         foreach (GameObject card in checkCardList)
@@ -309,6 +391,7 @@ public class GameMaster : MonoBehaviour
             }
         }
     }
+
     private void ApplyCollectorCombos()
     {
         List<int> selectedCardIds = checkCardList
@@ -338,8 +421,29 @@ public class GameMaster : MonoBehaviour
         }
     }
 
+    public void AddCoin(int amount)
+    {
+        coin += amount;
+        UpdateCoinUI();
+    }
 
+    public void SpendCoin(int amount)
+    {
+        coin -= amount;
+        UpdateCoinUI();
+    }
 
+    private void UpdateCoinUI()
+    {
+        if (coinText != null)
+            coinText.text = $"Coin: {coin}";
+    }
+
+    public void OpenShop()
+    {
+        shopManager.gameObject.SetActive(true);
+        shopManager.OpenShop();
+    }
 
     private IEnumerator DropAndEvaluateAfterDelay(float delaySeconds)
     {
@@ -349,11 +453,23 @@ public class GameMaster : MonoBehaviour
 
         if (stageManager.CheckStageResult(score, out stageMessage))
         {
+            AddCoin(5);
             resultText.text += "\n" + stageMessage;
-            if (stageManager.IsLastStage()) GameClear();
-            else { score = 0; UpdateScoreUI(); StartGame(); }
+
+            if (stageManager.IsLastStage())
+            {
+                GameClear();
+            }
+            else
+            {
+                gameState = GameState.Shop;
+                OpenShop();
+            }
         }
-        else if (currentSetCount == 0) HandleStageEnd();
+        else if (currentSetCount == 0)
+        {
+            HandleStageEnd();
+        }
     }
 
     public void DropCardByPlayer()
@@ -372,7 +488,6 @@ public class GameMaster : MonoBehaviour
 
         ExecuteDropAndDraw();
     }
-
 
     private void DropCardWithoutCost() => ExecuteDropAndDraw();
 
