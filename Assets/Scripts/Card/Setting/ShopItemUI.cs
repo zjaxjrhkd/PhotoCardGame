@@ -1,11 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class ShopItemUI : MonoBehaviour
 {
-    public TextMeshProUGUI nameText;
-    public TextMeshProUGUI priceText;
     public Button buyButton;
 
     private GameObject cardPrefab;
@@ -17,18 +14,6 @@ public class ShopItemUI : MonoBehaviour
         this.cardPrefab = cardPrefab;
         this.price = price;
         this.gameMaster = gameMaster;
-
-        CardData data = cardPrefab.GetComponent<CardData>();
-        if (data != null)
-        {
-            nameText.text = data.cardName;
-        }
-        else
-        {
-            nameText.text = "Unknown";
-        }
-
-        priceText.text = $"{price} Coin";
 
         buyButton.onClick.RemoveAllListeners();
         buyButton.onClick.AddListener(BuyThisCard);
