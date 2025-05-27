@@ -57,6 +57,14 @@ public class GameMaster : MonoBehaviour
 
     public BuffCardListSO buffCardListSO;
 
+    private int maxBuffSlotCount = 4; // 최대 버프카드 칸 수
+    private float buffStartX = -3f;
+    private float buffEndX = 4f;
+    private float buffY = 3.19f;
+    private float buffZ = -0.1f;
+    private float buffDefaultSpacing = 1f;
+    private float buffMinSpacing = 0.3f;
+
     void Start()
     {
         SetGameState();
@@ -135,23 +143,40 @@ public class GameMaster : MonoBehaviour
 
     private void RearrangeBuffCards()
     {
-        float minX = -3f;
-        float maxX = 5f;
-        float y = 3.19f;
-        float z = -0.1f;
-
         int count = buffCardList.Count;
         if (count == 0) return;
 
-        float spacing = (count > 1) ? (maxX - minX) / (count - 1) : 0f;
+        float startX = -3.5f;
+        float endX = 4f;
+        float totalWidth = endX - startX;
+
+        float spacing = (count > 1) ? totalWidth / (count - 1) : 0f;
+        float y = 3.19f;
+        float baseZ = -0.1f;
+        float zStep = 0.1f;
 
         for (int i = 0; i < count; i++)
         {
+            float x = startX + spacing * i;
+            float z = baseZ - zStep * i;
+
             GameObject card = buffCardList[i];
             card.SetActive(true);
-            card.transform.position = new Vector3(minX + spacing * i, y, z);
+            card.transform.position = new Vector3(x, y, z);
         }
     }
+
+
+
+
+    public void IncreaseBuffSlotCount(int amount)
+    {
+        maxBuffSlotCount += amount;
+        RearrangeBuffCards(); // 즉시 반영
+        Debug.Log($"버프 슬롯 증가: 현재 {maxBuffSlotCount}칸");
+    }
+
+
 
 
     public void BuyBuffCardById(int cardId)
