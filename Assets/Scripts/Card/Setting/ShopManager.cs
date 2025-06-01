@@ -27,19 +27,34 @@ public class ShopManager : MonoBehaviour
 
         ClearSpawnedCards();
 
-        int count = Mathf.Min(4, buffCardListSO.buffCards.Count);
+        int total = buffCardListSO.buffCards.Count;
+        int count = Mathf.Min(4, total);
+
+        // 0~total-1 인덱스 중 랜덤하게 count개 뽑기 (중복 없이)
+        List<int> indices = new List<int>();
+        for (int i = 0; i < total; i++) indices.Add(i);
+        for (int i = 0; i < count; i++)
+        {
+            int randIdx = Random.Range(i, total);
+            // Swap
+            int temp = indices[i];
+            indices[i] = indices[randIdx];
+            indices[randIdx] = temp;
+        }
+
         float spacing = (count > 1) ? (maxX - minX) / (count - 1) : 0;
 
         for (int i = 0; i < count; i++)
         {
-            GameObject prefab = buffCardListSO.buffCards[i];
-            Vector3 spawnPos = new Vector3(minX + spacing * i, y, -0.1f); // z축 고정
+            int cardIdx = indices[i];
+            GameObject prefab = buffCardListSO.buffCards[cardIdx];
+            Vector3 spawnPos = new Vector3(minX + spacing * i, y, -0.1f);
 
             GameObject card = Instantiate(prefab, spawnPos, Quaternion.identity, cardSpawnRoot.transform);
 
             CardData data = card.GetComponent<CardData>();
             if (data != null)
-                data.cardId = i;
+                data.cardId = cardIdx;
         }
     }
 
@@ -62,5 +77,10 @@ public class ShopManager : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+    }
+
+    public bool IsShopClosed()
+    {
+        return !gameObject.activeSelf;
     }
 }

@@ -21,7 +21,8 @@ public class ShopItemUI : MonoBehaviour
 
     private void BuyThisCard()
     {
-        if (gameMaster.coin < price)
+        // 코인 접근을 Coin 프로퍼티로 변경
+        if (gameMaster.Coin < price)
         {
             Debug.Log("코인이 부족합니다.");
             return;

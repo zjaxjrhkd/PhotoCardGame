@@ -17,11 +17,24 @@ public class StageManager : MonoBehaviour
 
     public TextMeshProUGUI stageText; // 현재 스테이지 UI
 
+    // --- StageManagerWrapper에서 가져온 필드 ---
+    public SpriteListSO stageImageListSO;
+    public UnityEngine.UI.Image stageUIImage;
+    // -----------------------------------------
+
     public void Initialize()
     {
-        stageOrder = new List<string>(stageScoreTable.Keys);
-        currentStageIndex = 0;
+        if (currentStageIndex != 0)
+        {
+            Debug.LogWarning("StageManager가 이미 초기화되었습니다. 다시 초기화하지 않습니다.");
+        }
+        else
+        {
+            stageOrder = new List<string>(stageScoreTable.Keys);
+            currentStageIndex = 0;
+        }
         UpdateStageUI();
+        UpdateStageImage();
     }
 
     public bool IsLastStage()
@@ -46,6 +59,7 @@ public class StageManager : MonoBehaviour
             }
 
             UpdateStageUI();
+            UpdateStageImage();
             return true;
         }
         else
@@ -71,6 +85,7 @@ public class StageManager : MonoBehaviour
             }
 
             UpdateStageUI();
+            UpdateStageImage();
             return true;
         }
         else
@@ -79,7 +94,6 @@ public class StageManager : MonoBehaviour
             return false;
         }
     }
-
 
     public string GetCurrentStageName()
     {
@@ -95,9 +109,27 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    // --- StageManagerWrapper에서 가져온 메서드 ---
+    public void UpdateStageImage()
+    {
+        int stageIndex = GetCurrentStageIndex();
+
+        if (stageImageListSO != null && stageImageListSO.sprites.Count > stageIndex)
+        {
+            stageUIImage.sprite = stageImageListSO.sprites[stageIndex];
+            Debug.Log($"스테이지 이미지 변경: {stageIndex}");
+        }
+        else
+        {
+            Debug.LogWarning("스테이지 이미지 리스트에 해당 인덱스가 없습니다.");
+        }
+    }
+    // --------------------------------------------
+
     public int GetCurrentStageIndex()
     {
         return currentStageIndex;
     }
+
 
 }
