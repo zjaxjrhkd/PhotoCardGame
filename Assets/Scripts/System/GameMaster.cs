@@ -1,703 +1,248 @@
-// GameMaster.cs
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
-using System.Linq;
+using System.Collections.Generic;
 
 public class GameMaster : MonoBehaviour
 {
-    enum GameState { Set, Draw, Select, Check, Drop, Shop, End }
-
-    public int score;
+    public enum GameState { Draw, Select, Shop, ShopEnd, End }
     private GameState gameState;
+
+    private CardManager cardManager;
+    private BuffManager buffManager;
+    private ScoreManager scoreManager;
+    private StageManager stageManager;
+    private UIManager uiManager;
+    private ShopManager shopManager;
 
     private int currentSetCount;
     private int currentDropCount;
     private int maxSetCount = 3;
     private int maxDropCount = 3;
-
-    public int drawCardEa;
-    public List<int> deckList;
-    public List<int> drawCardList;
-    public List<GameObject> playCardList;
-    public List<GameObject> checkCardList;
-    public List<GameObject> dropCardList;
-    public List<GameObject> selectCardList;
-    public List<GameObject> buffCardList;
-
-    public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI resultText;
-    public TextMeshProUGUI setCountText;
-    public TextMeshProUGUI dropCountText;
-
-    public CardSpawner cardSpawner;
-    private ScoreCalculator scoreCalculator;
-    private StageManager stageManager;
-
-    private CardState cardStateRead;
-    private CardData cardDataRead;
-
     private string stageMessage;
-    private bool isStageCleared;
-    private int stageIndex;
+    private int drawCount;
 
-    float minX = -3.65f;
-    float maxX = 5f;
-    float y = -3.2f;
-    float baseZ = -1f;
-    float zStep = 0.1f;
-
-    public SpriteListSO stageImageListSO;
-    public UnityEngine.UI.Image stageUIImage;
+    private bool isFirstDraw = true; // 게임 시작 후 첫 드로우만 10장
 
     public int coin;
-    public TextMeshProUGUI coinText;
-    public ShopManager shopManager;
+    public int winCoin=3;
 
-    public BuffCardListSO buffCardListSO;
-
-    private int maxBuffSlotCount = 4; // 최대 버프카드 칸 수
-    private float buffStartX = -3f;
-    private float buffEndX = 4f;
-    private float buffY = 3.19f;
-    private float buffZ = -0.1f;
-    private float buffDefaultSpacing = 1f;
-    private float buffMinSpacing = 0.3f;
+    void Awake()
+    {
+        cardManager = GetComponent<CardManager>();
+        buffManager = GetComponent<BuffManager>();
+        scoreManager = GetComponent<ScoreManager>();
+        stageManager = GetComponent<StageManager>();
+        uiManager = GetComponent<UIManager>();
+        shopManager = GetComponent<ShopManager>();
+    }
 
     void Start()
     {
-        SetGameState();
-        SetCardSpawner();
-        SetCardList();
-        SetDeckSuffle();
-        SetScore();
-        buffCardList = new List<GameObject>();
         StartGame();
     }
 
     void Update()
     {
-        RunGameFlow();
+        switch (gameState)
+        {
+            case GameState.Draw:
+                HandleDraw();
+                break;
+            case GameState.Select:
+                cardManager.ClickCard();
+                break;
+            case GameState.Shop:
+                HandleShop();
+                break;
+            case GameState.ShopEnd:
+                StartGame();
+                break;
+
+            case GameState.End:
+                // 게임 종료 처리 (UI 등)
+                break;
+        }
         if (gameState == GameState.Shop)
         {
-            DetectBuffCardClick();
+            buffManager.DetectBuffCardClick(coin, SpendCoin);
         }
-    }
-
-    public void SetGameState()
-    {
-        gameState = GameState.Set;
-        Debug.Log("게임 상태: " + gameState);
-    }
-
-    public void SetScore()
-    {
-        score = 0;
-        UpdateScoreUI();
     }
 
     public void StartGame()
     {
-        gameState = GameState.Draw;
-        score = 0;
-        InitStageCount();
-        SetCardList();
-        
-        UpdateScoreUI();
-        UpdateCountUI();
-        UpdateStageImage();
-
-        Debug.Log("게임 시작, 상태: " + gameState);
-    }
-
-    private void DetectBuffCardClick()
-    {
-        if (!Input.GetMouseButtonDown(0)) return;
-
-        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
-
-        if (hit.collider == null) return;
-
-        CardData data = hit.collider.GetComponent<CardData>();
-        if (data == null || data.cardType != CardData.CardType.Buff) return;
-
-        if (coin < 3)
-        {
-            Debug.Log("코인이 부족합니다.");
-            return;
-        }
-
-        SpendCoin(3);
-
-        GameObject clickedCard = data.gameObject;
-        clickedCard.SetActive(false); // 상점에서 제거
-
-        GameObject newCard = Instantiate(clickedCard); // 복사본 생성
-        buffCardList.Add(newCard);
-        RearrangeBuffCards();
-
-        Debug.Log($"버프 카드 구매 완료: {newCard.name}");
-    }
-
-    private void RearrangeBuffCards()
-    {
-        int count = buffCardList.Count;
-        if (count == 0) return;
-
-        float startX = -3.5f;
-        float endX = 4f;
-        float totalWidth = endX - startX;
-
-        float spacing = (count > 1) ? totalWidth / (count - 1) : 0f;
-        float y = 3.19f;
-        float baseZ = -0.1f;
-        float zStep = 0.1f;
-
-        for (int i = 0; i < count; i++)
-        {
-            float x = startX + spacing * i;
-            float z = baseZ - zStep * i;
-
-            GameObject card = buffCardList[i];
-            card.SetActive(true);
-            card.transform.position = new Vector3(x, y, z);
-        }
-    }
-
-
-
-
-    public void IncreaseBuffSlotCount(int amount)
-    {
-        maxBuffSlotCount += amount;
-        RearrangeBuffCards(); // 즉시 반영
-        Debug.Log($"버프 슬롯 증가: 현재 {maxBuffSlotCount}칸");
-    }
-
-
-
-
-    public void BuyBuffCardById(int cardId)
-    {
-        if (buffCardListSO == null || cardId < 0 || cardId >= buffCardListSO.buffCards.Count)
-        {
-            Debug.LogWarning("잘못된 카드 ID");
-            return;
-        }
-
-        if (coin < 3)
-        {
-            Debug.Log("코인이 부족합니다.");
-            return;
-        }
-
-        SpendCoin(3);
-
-        GameObject prefab = buffCardListSO.buffCards[cardId];
-        buffCardList.Add(prefab);
-
-        Debug.Log($"버프 카드 {prefab.name} 구매 완료");
-        RearrangeBuffCards();
-    }
-
-    public void InitStageCount()
-    {
         currentSetCount = maxSetCount;
         currentDropCount = maxDropCount;
-        UpdateCountUI();
-    }
-
-    public void SetCardSpawner()
-    {
-        cardSpawner = GetComponent<CardSpawner>();
-        cardSpawner.SetDeckSpawnPosition();
-        scoreCalculator = GetComponent<ScoreCalculator>();
-        stageManager = GetComponent<StageManager>();
+        scoreManager.SetScore();
+        cardManager.SetCardList();
         stageManager.Initialize();
-        shopManager = GetComponent<ShopManager>();
+        uiManager.UpdateScoreUI(scoreManager.score);
+        uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
+        uiManager.UpdateCoinUI(coin); // 코인 UI 갱신 추가
+        stageManager.UpdateStageImage();
+        isFirstDraw = true;
+        gameState = GameState.Draw;
     }
 
-    public void SetCardList()
+
+    private void HandleDraw()
     {
-        SetDeckSuffle();
-
-        checkCardList = new List<GameObject>();
-        dropCardList = new List<GameObject>();
-        selectCardList = new List<GameObject>();
-        drawCardList = new List<int>();
-
-        if (playCardList != null)
+        if (isFirstDraw)
         {
-            foreach (var card in playCardList)
-            {
-                if (card != null)
-                    Destroy(card);
-            }
+            cardManager.DrawInitialCards();
+            isFirstDraw = false;
         }
-        playCardList = new List<GameObject>();
-    }
-
-    public void SetDeckSuffle()
-    {
-        deckList = new List<int>();
-        for (int i = 1; i <= 54; i++) deckList.Add(i);
-        for (int i = 0; i < deckList.Count; i++)
-        {
-            int randIndex = Random.Range(i, deckList.Count);
-            (deckList[i], deckList[randIndex]) = (deckList[randIndex], deckList[i]);
-        }
-        Debug.Log("덱 섞기 완료, 카드 수: " + deckList.Count);
-    }
-
-    private void UpdateStageImage()
-    {
-        int stageIndex = stageManager.GetCurrentStageIndex();
-
-        if (stageImageListSO != null && stageImageListSO.sprites.Count > stageIndex)
-        {
-            stageUIImage.sprite = stageImageListSO.sprites[stageIndex];
-            Debug.Log($"스테이지 이미지 변경: {stageIndex}");
-        }
-        else
-        {
-            Debug.LogWarning("스테이지 이미지 리스트에 해당 인덱스가 없습니다.");
-        }
-    }
-
-    public bool IsDrawState()
-    {
-        return gameState == GameState.Draw;
-    }
-
-    public void OnNextStageButtonPressed()
-    {
-        Debug.Log("다음 스테이지 버튼 클릭됨");
-        shopManager.CloseShop();
-        StartGame();
-    }
-
-    void RunGameFlow()
-    {
-        switch (gameState)
-        {
-            case GameState.Draw:
-                DrawCard();
-                gameState = GameState.Select;
-                break;
-
-            case GameState.Select:
-                ClickCard();
-                break;
-
-            case GameState.Shop:
-                break;
-
-            case GameState.End:
-                Debug.Log("게임 종료 상태");
-                break;
-        }
-    }
-
-    public void DrawCard()
-    {
-        drawCardList = new List<int>();
-        int drawCount = Mathf.Min(drawCardEa, deckList.Count);
-        if (drawCount == 0) return;
-
-        for (int i = 0; i < drawCount; i++)
-        {
-            int cardId = deckList[0];
-            drawCardList.Add(cardId);
-            deckList.RemoveAt(0);
-        }
-
-        List<GameObject> spawnedCards = cardSpawner.SpawnCardsByID(drawCardList);
-        playCardList.AddRange(spawnedCards);
-        ArrangeCardsWithinRange();
+        gameState = GameState.Select;
     }
 
     public void OnSetButtonPressed()
     {
-        if (checkCardList.Count == 0)
+        if (currentSetCount <= 0)
+        {
+            Debug.LogWarning("Set 사용 횟수를 모두 사용했습니다.");
+            return;
+        }
+        if (cardManager.checkCardList.Count == 0)
         {
             Debug.LogWarning("선택된 카드가 없습니다.");
             return;
         }
 
-        if (!TryUseSet())
+        // 결과 텍스트 초기화
+        if (uiManager.resultText != null)
+            uiManager.resultText.text = "";
+
+        currentSetCount--;
+        uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
+
+        scoreManager.ApplyCardEffects(cardManager.checkCardList);
+        buffManager.ApplyBuffCards(cardManager.checkCardList, this);
+        scoreManager.ApplyCollectorCombos(cardManager.checkCardList, uiManager.resultText);
+        uiManager.UpdateScoreUI(scoreManager.score);
+
+        // selectCardList에 뭐가 있는지 확인
+        if (cardManager.selectCardList != null && cardManager.selectCardList.Count > 0)
         {
-            Debug.LogWarning("Set 사용 횟수를 모두 사용했습니다.");
-            return;
-        }
-
-        ArrangeCardsInRange(checkCardList, -3.65f, 5f, 0f, -0.1f);
-
-        foreach (GameObject card in checkCardList)
-        {
-            CardData cardData = card.GetComponentInChildren<CardData>();
-            if (cardData == null)
+            Debug.Log("[GameMaster] OnSetButtonPressed() 호출 시 selectCardList 내용:");
+            foreach (var card in cardManager.selectCardList)
             {
-                Debug.LogWarning($"{card.name}에서 CardData를 찾을 수 없습니다.");
-                continue;
-            }
-
-            string scriptName = cardData.cardName;
-
-            System.Type type = System.Type.GetType(scriptName);
-            if (type == null)
-            {
-                Debug.LogWarning($"{scriptName} 타입을 찾을 수 없습니다.");
-                continue;
-            }
-
-            Component effectScript = cardData.GetComponent(type);
-            if (effectScript == null)
-            {
-                Debug.LogWarning($"{scriptName} 스크립트를 찾을 수 없습니다.");
-                continue;
-            }
-
-            var method = type.GetMethod("Effect");
-            if (method != null)
-            {
-                method.Invoke(effectScript, null);
-                Debug.Log($"{scriptName}.Effect() 호출 완료");
-            }
-            else
-            {
-                Debug.LogWarning($"{scriptName}에 Effect() 메서드가 없습니다.");
+                if (card != null)
+                    Debug.Log($" - {card.name}");
+                else
+                    Debug.Log(" - null");
             }
         }
-
-        ApplyBuffCards();
-        ApplyCardEffects();
-        ApplyCollectorCombos();
-
-        UpdateScoreUI();
-        StartCoroutine(DropAndEvaluateAfterDelay(2f));
-    }
-
-    private void ApplyBuffCards()
-    {
-        foreach (GameObject card in checkCardList)
+        else
         {
-            var buffs = card.GetComponentsInChildren<IBuffCard>();
-            foreach (var buff in buffs)
-            {
-                buff.ApplyBuff(this);
-            }
+            Debug.Log("[GameMaster] OnSetButtonPressed() 호출 시 selectCardList가 비어있음");
         }
-    }
 
-    public interface IBuffCard
-    {
-        void ApplyBuff(GameMaster game);
-    }
-
-    private void ApplyCardEffects()
-    {
-        foreach (GameObject card in checkCardList)
+        // selectCardList의 오브젝트도 Destroy 및 리스트 7칸짜리로 재초기화
+        if (cardManager.selectCardList != null)
         {
-            CardData cardData = card.GetComponentInChildren<CardData>();
-            if (cardData == null) continue;
-
-            string scriptName = cardData.cardName;
-            System.Type type = System.Type.GetType(scriptName);
-            if (type == null) continue;
-
-            Component script = cardData.GetComponent(type);
-            System.Reflection.MethodInfo method = type.GetMethod("Effect");
-
-            if (script != null && method != null)
+            foreach (var card in cardManager.selectCardList)
             {
-                method.Invoke(script, null);
+                if (card != null)
+                    Destroy(card);
             }
+            cardManager.selectCardList = new List<GameObject>(new GameObject[7]);
+        }
+
+        foreach (GameObject card in cardManager.checkCardList)
+        {
+            GameObject parentCard = card.transform.parent.gameObject;
+            cardManager.playCardList.Remove(parentCard);
+            Destroy(parentCard);
+        }
+
+        drawCount = cardManager.checkCardList.Count;
+        cardManager.DrawCards(drawCount);
+        cardManager.checkCardList.Clear();
+
+        if (stageManager.CheckStageResult(scoreManager.score, out stageMessage))
+        {
+            AddCoin(winCoin);
+            gameState = GameState.Shop;
+            OpenShop();
+        }
+        else if (currentSetCount == 0)
+        {
+            gameState = GameState.End;
+            HandleGameEnd();
+        }
+        else
+        {
+            gameState = GameState.Draw;
         }
     }
 
-    private void ApplyCollectorCombos()
+    public void OnNextStagePressed()
     {
-        List<int> selectedCardIds = checkCardList
-            .Select(card => card.GetComponent<CardData>()?.cardId ?? -1)
-            .Where(id => id > 0)
-            .ToList();
+        shopManager.CloseShop();
+        scoreManager.SetScore();
+        uiManager.UpdateScoreUI(scoreManager.score);
+        gameState = GameState.ShopEnd;
+    }
 
-        if (scoreCalculator != null)
+    private void HandleShop()
+    {
+        if (shopManager.IsShopClosed())
         {
-            var matchedScores = scoreCalculator.GetMatchedCollectorScores(selectedCardIds);
-
-            foreach (var entry in matchedScores)
-            {
-                score += entry.Value;
-            }
-
-            if (matchedScores.Count > 0)
-            {
-                string names = string.Join(", ", matchedScores.Keys);
-                resultText.text = $"조합 성공! → {names}";
-            }
-            else
-            {
-                resultText.text = "일치하는 조합 없음";
-                score += 10;
-            }
+            StartGame();
         }
     }
 
-    public void AddCoin(int amount)
+    private void HandleGameEnd()
     {
-        coin += amount;
-        UpdateCoinUI();
-    }
-
-    public void SpendCoin(int amount)
-    {
-        coin -= amount;
-        UpdateCoinUI();
-    }
-
-    private void UpdateCoinUI()
-    {
-        if (coinText != null)
-            coinText.text = $"Coin: {coin}";
+        Debug.Log("게임 종료");
+        // UI 등 게임 종료 처리
     }
 
     public void OpenShop()
     {
         shopManager.gameObject.SetActive(true);
         shopManager.OpenShop();
+
     }
 
-    private IEnumerator DropAndEvaluateAfterDelay(float delaySeconds)
+    // 코인 관련 메서드
+    public void AddCoin(int amount)
     {
-        yield return new WaitForSeconds(delaySeconds);
-        DropCardWithoutCost();
-        yield return new WaitForSeconds(0.5f);
+        coin += amount;
+        // 필요시 코인 UI 갱신
+        uiManager.UpdateCoinUI(coin);
+    }
 
-        if (stageManager.CheckStageResult(score, out stageMessage))
+    public void SpendCoin(int amount)
+    {
+        coin -= amount;
+        // 필요시 코인 UI 갱신
+        uiManager.UpdateCoinUI(coin);
+    }
+
+    public int Coin
+    {
+        get { return coin; }
+        set
         {
-            AddCoin(5);
-            resultText.text += "\n" + stageMessage;
-
-            if (stageManager.IsLastStage())
-            {
-                GameClear();
-            }
-            else
-            {
-                gameState = GameState.Shop;
-                OpenShop();
-            }
-        }
-        else if (currentSetCount == 0)
-        {
-            HandleStageEnd();
-        }
-    }
-
-    public void DropCardByPlayer()
-    {
-        if (checkCardList.Count == 0)
-        {
-            Debug.LogWarning("선택된 카드가 없습니다. 드롭 불가.");
-            return;
-        }
-
-        if (!TryUseDrop())
-        {
-            Debug.LogWarning("Drop 사용 횟수를 모두 소진했습니다.");
-            return;
-        }
-
-        ExecuteDropAndDraw();
-    }
-
-    private void DropCardWithoutCost() => ExecuteDropAndDraw();
-
-    private void ExecuteDropAndDraw()
-    {
-        if (checkCardList.Count == 0) return;
-        int dropCount = checkCardList.Count;
-
-        foreach (GameObject card in checkCardList)
-        {
-            dropCardList.Add(card);
-            GameObject parentCard = card.transform.parent.gameObject;
-            playCardList.Remove(parentCard);
-            Destroy(parentCard);
-        }
-
-        checkCardList.Clear();
-        int originalDrawCount = drawCardEa;
-        drawCardEa = dropCount;
-        DrawCard();
-        drawCardEa = originalDrawCount;
-        ArrangeCardsWithinRange();
-    }
-
-    private void HandleStageEnd()
-    {
-        isStageCleared = stageManager.CheckStageResult(score, out stageMessage);
-        resultText.text += "\n" + stageMessage;
-        if (!isStageCleared) GameOver();
-        else if (stageManager.IsLastStage()) GameClear();
-        else StartCoroutine(DropCardAfterDelay(2f));
-    }
-
-    private IEnumerator DropCardAfterDelay(float delaySeconds)
-    {
-        yield return new WaitForSeconds(delaySeconds);
-        DropCardWithoutCost();
-    }
-
-    public void GameOver()
-    {
-        gameState = GameState.End;
-        resultText.text += "\n게임 오버";
-    }
-
-    public void GameClear()
-    {
-        gameState = GameState.End;
-        resultText.text += "\n게임 클리어!";
-    }
-
-    public bool TryUseSet()
-    {
-        if (currentSetCount > 0) { currentSetCount--; UpdateCountUI(); return true; }
-        return false;
-    }
-
-    public bool TryUseDrop()
-    {
-        if (currentDropCount > 0) { currentDropCount--; UpdateCountUI(); return true; }
-        return false;
-    }
-
-    private void UpdateScoreUI()
-    {
-        if (scoreText != null) scoreText.text = "Score : " + score.ToString();
-    }
-
-    private void UpdateCountUI()
-    {
-        if (setCountText != null) setCountText.text = $"Set: {currentSetCount}/{maxSetCount}";
-        if (dropCountText != null) dropCountText.text = $"Drop: {currentDropCount}/{maxDropCount}";
-    }
-
-    public void IncreaseSetCountByItem(int amount)
-    {
-        maxSetCount += amount;
-        currentSetCount += amount;
-        UpdateCountUI();
-    }
-
-    public void IncreaseDropCountByItem(int amount)
-    {
-        maxDropCount += amount;
-        currentDropCount += amount;
-        UpdateCountUI();
-    }
-    public void ClickCard()
-    {
-        if (!Input.GetMouseButtonDown(0)) return;
-
-        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
-
-        if (hit.collider != null)
-        {
-            cardStateRead = hit.collider.GetComponent<CardState>();
-            cardDataRead = hit.collider.GetComponent<CardData>();
-
-            if (cardStateRead != null)
-            {
-                cardStateRead.CardStateClicked(); // ← 반드시 호출되어야 함
-                AddCheckCardList();
-            }
+            coin = value;
+            uiManager.UpdateCoinUI(coin);
         }
     }
 
-    public void AddCheckCardList()
-    {
-        GameObject card = cardDataRead.gameObject;
-        GameObject parentCard = card.transform.parent.gameObject;
-
-        if (cardStateRead.isClick)
-        {
-            if (!checkCardList.Contains(card))
-                checkCardList.Add(card);
-
-            if (!selectCardList.Contains(parentCard))
-            {
-                selectCardList.Add(parentCard);
-                Vector3 pos = parentCard.transform.position;
-                parentCard.transform.position = new Vector3(pos.x, pos.y + 3.2f, pos.z);
-            }
-        }
-        else
-        {
-            RemoveCheckCardList();
-        }
-    }
-
-    public void RemoveCheckCardList()
-    {
-        GameObject card = cardDataRead.gameObject;
-        GameObject parentCard = card.transform.parent.gameObject;
-
-        if (checkCardList.Contains(card))
-            checkCardList.Remove(card);
-
-        if (selectCardList.Contains(parentCard))
-        {
-            selectCardList.Remove(parentCard);
-            Vector3 pos = parentCard.transform.position;
-            parentCard.transform.position = new Vector3(pos.x, pos.y - 3.2f, pos.z);
-        }
-    }
-
-
-    public void ArrangeCardsWithinRange()
-    {
-        if (playCardList == null || playCardList.Count == 0) return;
-        List<GameObject> activeCards = playCardList.FindAll(card => card != null && card.activeSelf);
-        int count = activeCards.Count;
-        if (count == 0) return;
-
-        float spacing = count > 1 ? (maxX - minX) / (count - 1) : 0f;
-
-        for (int i = 0; i < count; i++)
-        {
-            float x = minX + spacing * i;
-            float z = baseZ + zStep * i;
-            activeCards[i].transform.position = new Vector3(x, y, z);
-        }
-    }
-
-    public void ArrangeCardsInRange(List<GameObject> cardList, float minX, float maxX, float y, float z)
-    {
-        if (cardList == null || cardList.Count == 0) return;
-        List<GameObject> activeCards = cardList.FindAll(card => card != null && card.activeSelf);
-        int count = activeCards.Count;
-        if (count == 0) return;
-
-        float spacing = count > 1 ? (maxX - minX) / (count - 1) : 0f;
-
-        for (int i = 0; i < count; i++)
-        {
-            float offsetZ = z - (i * 0.1f); // 오른쪽으로 갈수록 z 감소
-            Vector3 newPos = new Vector3(minX + spacing * i, y, offsetZ);
-            activeCards[i].transform.position = newPos;
-        }
-    }
-
+    // 프록시/유틸 메서드
     public bool IsInPlayCardList(GameObject card)
     {
-        return playCardList.Contains(card.transform.parent.gameObject); // 카드 자체가 아니라 카드의 부모(슬롯)를 비교
+        return cardManager != null && cardManager.IsInPlayCardList(card);
     }
-
-
+    public bool IsDrawState()
+    {
+        return gameState == GameState.Draw;
+    }
+    public List<GameObject> buffCardList
+    {
+        get { return buffManager != null ? buffManager.buffCardList : null; }
+    }
+    public List<int> deckList
+    {
+        get { return cardManager != null ? cardManager.deckList : null; }
+    }
 }

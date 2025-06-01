@@ -1,12 +1,12 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-
-public class ScoreCalculator : MonoBehaviour
+public class ScoreManager : MonoBehaviour
 {
-    // 기존 Dictionary 유지
+    public int score;
+
+    // ScoreCalculator에서 가져온 콜렉터 Dictionary
     private Dictionary<string, List<int>> collectors = new Dictionary<string, List<int>>()
     {
         { "이주인콜렉터", new List<int>{1,8,15,22,29,36,43,50} },
@@ -60,7 +60,7 @@ public class ScoreCalculator : MonoBehaviour
             string name = entry.Key;
             List<int> ids = entry.Value;
 
-            int matchCount = ids.Count(id => ownedCardIds.Contains(id)); // 이건 LINQ의 Count()
+            int matchCount = ids.Count(id => ownedCardIds.Contains(id));
             int score = GetScoreByCount(name, matchCount);
 
             if (score > 0)
@@ -71,5 +71,43 @@ public class ScoreCalculator : MonoBehaviour
 
         return result;
     }
-}
 
+    // 예시: 카드 효과 적용
+    public void ApplyCardEffects(List<GameObject> checkCardList)
+    {
+        foreach (var card in checkCardList)
+        {
+            CardData cardData = card.GetComponent<CardData>();
+            if (cardData != null)
+            {
+                // 예시: 카드마다 10점 추가
+                score += 10;
+            }
+        }
+    }
+
+    // 예시: 콜렉터 조합 점수 적용
+    public void ApplyCollectorCombos(List<GameObject> checkCardList, TMPro.TextMeshProUGUI resultText)
+    {
+        List<int> ownedCardIds = new List<int>();
+        foreach (var card in checkCardList)
+        {
+            CardData cardData = card.GetComponent<CardData>();
+            if (cardData != null)
+                ownedCardIds.Add(cardData.cardId);
+        }
+
+        var combos = GetMatchedCollectorScores(ownedCardIds);
+        foreach (var combo in combos)
+        {
+            score += combo.Value;
+            if (resultText != null)
+                resultText.text += $"{combo.Key} +{combo.Value}점\n";
+        }
+    }
+
+    public void SetScore()
+    {
+        score = 0;
+    }
+}
