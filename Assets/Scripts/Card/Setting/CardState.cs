@@ -31,7 +31,7 @@ public class CardState : MonoBehaviour
 
         if (hoverUI == null || hoverText == null) return;
 
-        transform.position += new Vector3(0f, 1f, 0f); // y+1 이동
+        transform.position += new Vector3(0f, 1f, -1f); // y+1 이동
 
         Vector3 worldPos = transform.position + new Vector3(0, 2.2f, 0f); // 최종 y+3.2 기준
         Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
@@ -46,7 +46,7 @@ public class CardState : MonoBehaviour
         if (!isHovering) return; // 떠 있지 않으면 다시 내릴 필요 없음
         isHovering = false;
 
-        transform.position -= new Vector3(0f, 1f, 0f); // y-1 복귀
+        transform.position -= new Vector3(0f, 1f, -1f); // y-1 복귀
 
         if (hoverUI != null)
             hoverUI.SetActive(false);

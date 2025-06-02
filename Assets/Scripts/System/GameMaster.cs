@@ -10,13 +10,13 @@ public class GameMaster : MonoBehaviour
     private BuffManager buffManager;
     private ScoreManager scoreManager;
     private StageManager stageManager;
-    private UIManager uiManager;
+    public UIManager uiManager;
     private ShopManager shopManager;
 
     private int currentSetCount;
     private int currentDropCount;
     private int maxSetCount = 3;
-    private int maxDropCount = 3;
+    private int maxDropCount = 99;
     private string stageMessage;
     private int drawCount;
 
@@ -24,6 +24,8 @@ public class GameMaster : MonoBehaviour
 
     public int coin;
     public int winCoin=3;
+    private int targetScore = 2000;
+
 
     void Awake()
     {
@@ -74,10 +76,15 @@ public class GameMaster : MonoBehaviour
         scoreManager.SetScore();
         cardManager.SetCardList();
         stageManager.Initialize();
-        uiManager.UpdateScoreUI(scoreManager.score);
+
+        // 목표점수 할당 (예: 스테이지별로 다르게)
+        targetScore = stageManager.GetTargetScore(); // 또는 직접 할당
+
+        uiManager.UpdateScoreUI(scoreManager.score, targetScore);
         uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
-        uiManager.UpdateCoinUI(coin); // 코인 UI 갱신 추가
+        uiManager.UpdateCoinUI(coin);
         stageManager.UpdateStageImage();
+        uiManager.HideCollectorComboImages();
         isFirstDraw = true;
         gameState = GameState.Draw;
     }
@@ -106,17 +113,17 @@ public class GameMaster : MonoBehaviour
             return;
         }
 
-        // 결과 텍스트 초기화
+        /*// 결과 텍스트 초기화
         if (uiManager.resultText != null)
             uiManager.resultText.text = "";
-
+        */
         currentSetCount--;
         uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
 
         scoreManager.ApplyCardEffects(cardManager.checkCardList);
         buffManager.ApplyBuffCards(cardManager.checkCardList, this);
-        scoreManager.ApplyCollectorCombos(cardManager.checkCardList, uiManager.resultText);
-        uiManager.UpdateScoreUI(scoreManager.score);
+        scoreManager.ApplyCollectorCombos(cardManager.checkCardList);
+        uiManager.UpdateScoreUI(scoreManager.score, targetScore);
 
         // selectCardList에 뭐가 있는지 확인
         if (cardManager.selectCardList != null && cardManager.selectCardList.Count > 0)
@@ -174,11 +181,32 @@ public class GameMaster : MonoBehaviour
         }
     }
 
+    public void OnDropButtonPressed()
+    {
+        if (currentDropCount <= 0)
+        {
+            Debug.LogWarning("Drop 사용 횟수를 모두 사용했습니다.");
+            return;
+        }
+        if (cardManager.checkCardList.Count == 0)
+        {
+            Debug.LogWarning("선택된 카드가 없습니다.");
+            return;
+        }
+
+        currentDropCount--;
+        uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
+
+        cardManager.DropAndDrawSelectedCards();
+
+        uiManager.HideCollectorComboImages();
+    }
+
     public void OnNextStagePressed()
     {
         shopManager.CloseShop();
         scoreManager.SetScore();
-        uiManager.UpdateScoreUI(scoreManager.score);
+        uiManager.UpdateScoreUI(scoreManager.score, targetScore);
         gameState = GameState.ShopEnd;
     }
 

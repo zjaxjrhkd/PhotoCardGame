@@ -11,6 +11,7 @@ public class CardManager : MonoBehaviour
     public List<GameObject> selectCardList = new List<GameObject>();
 
     public CardSpawner cardSpawner;
+    public ScoreManager scoreManager; // 인스펙터에서 연결 또는 FindObjectOfType 사용
 
     // 카드 배치 좌표
     public float minX = -3.65f;
@@ -36,7 +37,8 @@ public class CardManager : MonoBehaviour
     {
         gameMaster = FindObjectOfType<GameMaster>();
         cardSpawner = GetComponent<CardSpawner>();
-
+        if (scoreManager == null)
+            scoreManager = FindObjectOfType<ScoreManager>();
     }
 
     void Update()
@@ -85,38 +87,23 @@ public class CardManager : MonoBehaviour
 
             if (state != null)
             {
-                // Debug.Log($"[CardManager] 마우스 감지됨 → {state.name}");
-
                 if (!state.isClick && gameMaster != null && IsInPlayCardList(state.gameObject))
                 {
                     if (lastHoveredCard != null && lastHoveredCard != state)
                     {
                         lastHoveredCard.HideHoverUI();
-                        Debug.Log($"[CardManager] 이전 카드 {lastHoveredCard.name} UI 숨김");
                     }
 
                     state.ShowHoverUI();
                     lastHoveredCard = state;
-
-                    // Debug.Log($"[CardManager] 카드 {state.name} UI 표시");
                     return;
                 }
-                // else
-                // {
-                //     Debug.Log("[CardManager] 상태 조건 불일치 → UI 표시 안함");
-                // }
             }
-            // else
-            // {
-            //     Debug.Log("[CardManager] 카드 상태 스크립트(CardState) 없음");
-            // }
         }
 
-        // 마우스가 카드에서 벗어난 경우
         if (lastHoveredCard != null)
         {
             lastHoveredCard.HideHoverUI();
-            // Debug.Log($"[CardManager] 카드 {lastHoveredCard.name} 에서 마우스 벗어남 → UI 숨김");
             lastHoveredCard = null;
         }
     }
@@ -131,9 +118,7 @@ public class CardManager : MonoBehaviour
             int randIndex = Random.Range(i, deckList.Count);
             (deckList[i], deckList[randIndex]) = (deckList[randIndex], deckList[i]);
         }
-        Debug.Log("덱 섞기 완료, 카드 수: " + deckList.Count);
 
-        // 덱 장수 UI 갱신
         if (gameMaster != null)
         {
             var ui = gameMaster.GetComponent<UIManager>();
@@ -150,7 +135,6 @@ public class CardManager : MonoBehaviour
         dropCardList.Clear();
         drawCardList.Clear();
 
-        // selectCardList에 있는 오브젝트도 Destroy
         if (selectCardList != null)
         {
             foreach (var card in selectCardList)
@@ -170,7 +154,7 @@ public class CardManager : MonoBehaviour
             }
         }
         playCardList = new List<GameObject>();
-        // 덱 장수 UI 갱신
+
         if (gameMaster != null)
         {
             var ui = gameMaster.GetComponent<UIManager>();
@@ -183,11 +167,9 @@ public class CardManager : MonoBehaviour
     {
         get
         {
-            // 필요에 따라 dropCardList, playCardList 등도 포함할 수 있음
             return deckList.Count + playCardList.Count + drawCardList.Count + dropCardList.Count;
         }
     }
-
 
     public void ArrangeCardsWithinRange()
     {
@@ -222,6 +204,7 @@ public class CardManager : MonoBehaviour
             activeCards[i].transform.position = newPos;
         }
     }
+
     public bool IsInPlayCardList(GameObject card)
     {
         if (card == null)
@@ -253,6 +236,9 @@ public class CardManager : MonoBehaviour
 
     public void AddCheckCardList(CardState cardStateRead, CardData cardDataRead)
     {
+        if (checkCardList.Count >= 7)
+            return;
+
         if (cardStateRead == null || cardDataRead == null) return;
 
         GameObject card = cardDataRead.gameObject;
@@ -263,10 +249,8 @@ public class CardManager : MonoBehaviour
             if (!checkCardList.Contains(card))
                 checkCardList.Add(card);
 
-            // selectCardList에 비어있는 자리(null)를 찾아서 추가
             if (!selectCardList.Contains(parentCard))
             {
-                // 최대 7장까지만
                 int emptyIdx = selectCardList.FindIndex(obj => obj == null);
                 if (emptyIdx != -1)
                 {
@@ -279,6 +263,34 @@ public class CardManager : MonoBehaviour
         {
             RemoveCheckCardList(cardStateRead, cardDataRead);
         }
+
+        // checkCardList 정보 출력
+        List<string> cardInfoList = new List<string>();
+        foreach (var obj in checkCardList)
+        {
+            if (obj == null) continue;
+            CardData cd = obj.GetComponent<CardData>();
+            if (cd != null)
+                cardInfoList.Add($"{cd.cardId}({obj.name})");
+        }
+        Debug.Log($"[CardManager] checkCardList: {string.Join(", ", cardInfoList)}");
+
+        // 조합 체크 및 UI 갱신
+        var combos = GetCompletedCollectorCombos(scoreManager);
+        if (combos.Count > 0)
+        {
+            foreach (var combo in combos)
+            {
+                Debug.Log($"[CardManager] 콜렉터 조합 완성: {combo.collectorName} (소유: {combo.ownedCount}장, 점수: {combo.score})");
+            }
+        }
+        else
+        {
+            Debug.Log("[CardManager] 현재 완성된 콜렉터 조합 없음");
+        }
+
+        if (gameMaster != null && gameMaster.uiManager != null)
+            gameMaster.uiManager.UpdateCollectorResultUI(combos);
     }
 
     public void RemoveCheckCardList(CardState cardStateRead, CardData cardDataRead)
@@ -296,7 +308,6 @@ public class CardManager : MonoBehaviour
         {
             selectCardList[idx] = null;
 
-            // playCardList에서의 인덱스 구하기
             int playIdx = playCardList.IndexOf(parentCard);
             if (playIdx >= 0)
             {
@@ -306,7 +317,36 @@ public class CardManager : MonoBehaviour
                 parentCard.transform.position = new Vector3(x, y, z);
             }
         }
+
+        // checkCardList 정보 출력
+        List<string> cardInfoList = new List<string>();
+        foreach (var obj in checkCardList)
+        {
+            if (obj == null) continue;
+            CardData cd = obj.GetComponent<CardData>();
+            if (cd != null)
+                cardInfoList.Add($"{cd.cardId}({obj.name})");
+        }
+        Debug.Log($"[CardManager] checkCardList: {string.Join(", ", cardInfoList)}");
+
+        // 조합 체크 및 UI 갱신
+        var combos = GetCompletedCollectorCombos(scoreManager);
+        if (combos.Count > 0)
+        {
+            foreach (var combo in combos)
+            {
+                Debug.Log($"[CardManager] 콜렉터 조합 완성: {combo.collectorName} (소유: {combo.ownedCount}장, 점수: {combo.score})");
+            }
+        }
+        else
+        {
+            Debug.Log("[CardManager] 현재 완성된 콜렉터 조합 없음");
+        }
+
+        if (gameMaster != null && gameMaster.uiManager != null)
+            gameMaster.uiManager.UpdateCollectorResultUI(combos);
     }
+
 
     public void DropAndDrawSelectedCards()
     {
@@ -324,7 +364,7 @@ public class CardManager : MonoBehaviour
 
         int originalDrawEa = drawCardEa;
         drawCardEa = dropCount;
-        DrawCards(drawCardEa); // DrawCard() → DrawCards(drawCardEa)로 변경
+        DrawCards(drawCardEa);
         drawCardEa = originalDrawEa;
         ArrangeCardsWithinRange();
     }
@@ -336,6 +376,48 @@ public class CardManager : MonoBehaviour
         return new Vector3(selectCardXPositions[index], selectCardY, selectCardZ);
     }
 
-    // 카드 선택/체크/드롭 관련 메서드는 GameMaster와의 연결이 필요하므로, 
-    // GameMaster에서 호출하거나 이벤트로 연결하는 것이 좋습니다.
+    /// <summary>
+    /// 선택된 카드로 완성된 콜렉터 조합 리스트 반환
+    /// </summary>
+    public List<CollectorComboResult> GetCompletedCollectorCombos(ScoreManager scoreManager)
+    {
+        List<CollectorComboResult> results = new List<CollectorComboResult>();
+        if (checkCardList == null || checkCardList.Count == 0)
+            return results;
+
+        // 체크된 카드 ID 목록 생성
+        List<int> ownedCardIds = new List<int>();
+        foreach (var card in checkCardList)
+        {
+            if (card == null) continue;
+            CardData cardData = card.GetComponent<CardData>();
+            if (cardData != null)
+                ownedCardIds.Add(cardData.cardId);
+        }
+
+        // 콜렉터별 매칭 결과 얻기
+        var matchedScores = scoreManager.GetMatchedCollectorScores(ownedCardIds);
+
+        foreach (var kv in matchedScores)
+        {
+            string collectorName = kv.Key;
+            int score = kv.Value;
+            int ownedCount = scoreManager.collectors[collectorName].FindAll(id => ownedCardIds.Contains(id)).Count;
+            results.Add(new CollectorComboResult
+            {
+                collectorName = collectorName,
+                ownedCount = ownedCount,
+                score = score
+            });
+        }
+        return results;
+    }
+}
+
+// 콜렉터 조합 결과 구조체
+public struct CollectorComboResult
+{
+    public string collectorName;
+    public int ownedCount;
+    public int score;
 }
