@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: cd14d32489243d3408759890ff43d4ac, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 20ccbb67f65a1334f8de2e918b10e49f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -195,6 +195,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardId: 18
   cardName: 
+  cardType: 0
 --- !u!1 &8949536555947873314
 GameObject:
   m_ObjectHideFlags: 0

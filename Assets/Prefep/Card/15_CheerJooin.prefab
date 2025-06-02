@@ -194,8 +194,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a066e290c16225429c2b34d88c46245, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardId: 45
+  cardId: 15
   cardName: CheerJooin
+  cardType: 0
 --- !u!114 &7525984366727341171
 MonoBehaviour:
   m_ObjectHideFlags: 0

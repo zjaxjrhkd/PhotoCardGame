@@ -131,5 +131,17 @@ public class StageManager : MonoBehaviour
         return currentStageIndex;
     }
 
+    public int GetTargetScore()
+    {
+        if (stageOrder == null || stageOrder.Count == 0)
+            return 0;
+
+        string currentStage = stageOrder[currentStageIndex];
+        if (stageScoreTable.TryGetValue(currentStage, out int targetScore))
+            return targetScore;
+        else
+            return 0;
+    }
+
 
 }
