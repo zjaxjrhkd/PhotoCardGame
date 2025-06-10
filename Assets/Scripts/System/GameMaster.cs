@@ -12,6 +12,7 @@ public class GameMaster : MonoBehaviour
     private StageManager stageManager;
     public UIManager uiManager;
     private ShopManager shopManager;
+    public CardSpawner cardSpawner;
 
     private int currentSetCount;
     private int currentDropCount;
@@ -120,9 +121,11 @@ public class GameMaster : MonoBehaviour
         currentSetCount--;
         uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
 
+        //점수 계산 및 UI업데이트
         scoreManager.ApplyCardEffects(cardManager.checkCardList);
         buffManager.ApplyBuffCards(cardManager.checkCardList, this);
         scoreManager.ApplyCollectorCombos(cardManager.checkCardList);
+        scoreManager.CalculateResultScore();
         uiManager.UpdateScoreUI(scoreManager.score, targetScore);
 
         // selectCardList에 뭐가 있는지 확인

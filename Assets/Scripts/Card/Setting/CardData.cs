@@ -9,4 +9,22 @@ public class CardData : MonoBehaviour
 
     public enum CardType { Character, Buff }
     public CardType cardType;
+
+    public void InitEffects(ScoreManager scoreManager, GameMaster gameMaster, CardManager cardManager)
+    {
+        var effects = GetComponents<ICardEffect>();
+        foreach (var effect in effects)
+        {
+            effect.Init(scoreManager, gameMaster, cardManager);
+        }
+    }
+
+    public void UseEffect()
+    {
+        var effects = GetComponents<ICardEffect>();
+        foreach (var effect in effects)
+        {
+            effect.Effect();
+        }
+    }
 }

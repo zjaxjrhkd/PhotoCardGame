@@ -68,6 +68,10 @@ public class CardManager : MonoBehaviour
         List<GameObject> spawnedCards = cardSpawner.SpawnCardsByID(drawCardList);
         playCardList.AddRange(spawnedCards);
         ArrangeCardsWithinRange();
+
+        InitDrawnCards();
+
+
         if (gameMaster != null)
         {
             var ui = gameMaster.GetComponent<UIManager>();
@@ -290,7 +294,14 @@ public class CardManager : MonoBehaviour
         }
 
         if (gameMaster != null && gameMaster.uiManager != null)
+        {
             gameMaster.uiManager.UpdateCollectorResultUI(combos);
+
+            // 점수 계산 UI 갱신 추가
+            gameMaster.uiManager.UpdateScoreCalUI(
+                scoreManager.rate,scoreManager.scoreYet, scoreManager.resultScore       // scoreYet에 해당하는 값
+            );
+        }
     }
 
     public void RemoveCheckCardList(CardState cardStateRead, CardData cardDataRead)
@@ -369,6 +380,25 @@ public class CardManager : MonoBehaviour
         ArrangeCardsWithinRange();
     }
 
+    public void InitDrawnCards()
+    {
+        // 새로 추가된 카드 전체에 InitEffects 호출
+        foreach (var cardObj in playCardList)
+        {
+            if (cardObj == null) continue;
+            var cardData = cardObj.GetComponentInChildren<CardData>();
+            if (cardData != null)
+            {
+                cardData.InitEffects(scoreManager, gameMaster, this);
+                Debug.Log($"[CardManager] InitEffects 호출됨: {cardData.cardName} (ID: {cardData.cardId}, 오브젝트: {cardObj.name})");
+            }
+            else
+            {
+                Debug.LogWarning($"[CardManager] CardData를 찾을 수 없음: {cardObj.name}");
+            }
+        }
+    }
+
     public Vector3 GetSelectCardPosition(int index)
     {
         if (index < 0 || index >= selectCardXPositions.Length)
@@ -413,6 +443,8 @@ public class CardManager : MonoBehaviour
         return results;
     }
 }
+
+
 
 // 콜렉터 조합 결과 구조체
 public struct CollectorComboResult
