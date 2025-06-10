@@ -11,9 +11,11 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI dropCountText;
     public TextMeshProUGUI coinText;
     public TextMeshProUGUI deckCountText;
+    public TextMeshProUGUI rateText;
+    public TextMeshProUGUI scoreYetText;
 
     // 콜렉터 결과 UI (최대 3개까지)
-    public TMP_Text collectorCheckScore;
+    public TextMeshProUGUI resultCheckScore;
 
     public Image[] collectorResultImages;
 
@@ -41,6 +43,13 @@ public class UIManager : MonoBehaviour
         if (deckCountText != null)
             deckCountText.text = $"{current} / {total}";
     }
+    public void UpdateScoreCalUI(float rate, int scoreYet, int resultScore)
+    {
+        if (rateText != null) rateText.text = $"{rate}";
+        if (scoreYetText != null) scoreYetText.text = $"{scoreYet}";
+        if (resultCheckScore != null) resultCheckScore.text = $"{resultScore}";
+    }
+
 
     /// <summary>
     /// 콜렉터 조합 결과 UI 갱신 (최대 3개까지)
@@ -51,27 +60,25 @@ public class UIManager : MonoBehaviour
         if (collectorResultImages == null) return;
         foreach (var img in collectorResultImages)
             if (img != null) img.enabled = false;
-        if (collectorCheckScore != null) collectorCheckScore.text = "";
     }
+
+
 
     public void UpdateCollectorResultUI(List<CollectorComboResult> combos)
     {
         // 모든 이미지 비활성화
         foreach (var img in collectorResultImages)
             if (img != null) img.enabled = false;
-        if (collectorCheckScore != null)
-            collectorCheckScore.text = "";
-
         if (combos == null || combos.Count == 0)
             return;
-
+        /*
         // 전체 조합 점수의 합을 표시
         int totalScore = 0;
         foreach (var combo in combos)
             totalScore += combo.score;
         if (collectorCheckScore != null)
             collectorCheckScore.text = totalScore.ToString();
-
+        */
         // 세트 조합 이름 목록
         HashSet<string> setNames = new HashSet<string>
     {

@@ -7,6 +7,10 @@ using TMPro;
 public class ScoreManager : MonoBehaviour
 {
     public int score;
+    public int scoreYet;
+    public int resultScore;
+    public float rate = 1.0f; // 배율
+
 
     // ScoreCalculator에서 가져온 콜렉터 Dictionary
     public Dictionary<string, List<int>> collectors = new Dictionary<string, List<int>>()
@@ -117,6 +121,7 @@ public class ScoreManager : MonoBehaviour
             {
                 // 예시: 카드마다 10점 추가
                 score += 10;
+                cardData.UseEffect();
             }
         }
     }
@@ -137,6 +142,13 @@ public class ScoreManager : MonoBehaviour
         {
             score += combo.Value;
         }
+    }
+
+    public int CalculateResultScore()
+    {
+        resultScore = Mathf.RoundToInt(scoreYet * rate);
+        Debug.Log($"[ScoreManager] scoreYet: {scoreYet}, rate: {rate}, resultScore: {resultScore}");
+        return resultScore;
     }
 
     public void SetScore()
