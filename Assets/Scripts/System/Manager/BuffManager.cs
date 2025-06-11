@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,7 +16,14 @@ public class BuffManager : MonoBehaviour
     public float buffDefaultSpacing = 1f;
     public float buffMinSpacing = 0.3f;
 
-    public void DetectBuffCardClick(int coin, System.Action<int> spendCoin)
+    public UIManager uiManager;
+
+    // GameMaster, ScoreManager, CardManager 참조 필요
+    public GameMaster gameMaster;
+    public ScoreManager scoreManager;
+    public CardManager cardManager;
+
+    public void DetectBuffCardClick(int coin, Action<int> spendCoin)
     {
         if (!Input.GetMouseButtonDown(0)) return;
 
@@ -35,13 +44,52 @@ public class BuffManager : MonoBehaviour
         spendCoin(3);
 
         GameObject clickedCard = data.gameObject;
-        clickedCard.SetActive(false);
 
+        // 먼저 복제
         GameObject newCard = Instantiate(clickedCard);
         buffCardList.Add(newCard);
-        RearrangeBuffCards();
+
+        // 그 다음에 원본 비활성화
+        clickedCard.SetActive(false);
+
+        // Init 명시적 호출
+        foreach (var effect in newCard.GetComponents<ICardEffect>())
+        {
+            effect.Init(scoreManager, gameMaster, cardManager);
+        }
 
         Debug.Log($"버프 카드 구매 완료: {newCard.name}");
+        RearrangeBuffCards();
+    }
+
+    public void BuyBuffCardById(int cardId, int coin, Action<int> spendCoin)
+    {
+        if (buffCardListSO == null || cardId < 0 || cardId >= buffCardListSO.buffCards.Count)
+        {
+            Debug.LogWarning("잘못된 카드 ID");
+            return;
+        }
+
+        if (coin < 3)
+        {
+            Debug.Log("코인이 부족합니다.");
+            return;
+        }
+
+        spendCoin(3);
+
+        GameObject prefab = buffCardListSO.buffCards[cardId];
+        GameObject newCard = Instantiate(prefab);
+        buffCardList.Add(newCard);
+
+        // Init 명시적 호출
+        foreach (var effect in newCard.GetComponents<ICardEffect>())
+        {
+            effect.Init(scoreManager, gameMaster, cardManager);
+        }
+
+        Debug.Log($"버프 카드 {newCard.name} 구매 완료");
+        RearrangeBuffCards();
     }
 
     public void RearrangeBuffCards()
@@ -76,42 +124,47 @@ public class BuffManager : MonoBehaviour
         Debug.Log($"버프 슬롯 증가: 현재 {maxBuffSlotCount}칸");
     }
 
-    public void BuyBuffCardById(int cardId, int coin, System.Action<int> spendCoin)
+    public IEnumerator ApplyBuffCards(List<GameObject> buffCardList)
     {
-        if (buffCardListSO == null || cardId < 0 || cardId >= buffCardListSO.buffCards.Count)
+        var buffListCopy = new List<GameObject>(buffCardList);
+
+        foreach (var card in buffListCopy)
         {
-            Debug.LogWarning("잘못된 카드 ID");
-            return;
-        }
+            if (card == null) continue;
+            var data = card.GetComponent<CardData>();
+            if (data == null || data.buffType != CardData.BuffType.Always) continue;
 
-        if (coin < 3)
-        {
-            Debug.Log("코인이 부족합니다.");
-            return;
-        }
-
-        spendCoin(3);
-
-        GameObject prefab = buffCardListSO.buffCards[cardId];
-        buffCardList.Add(prefab);
-
-        Debug.Log($"버프 카드 {prefab.name} 구매 완료");
-        RearrangeBuffCards();
-    }
-
-    public interface IBuffCard
-    {
-        void ApplyBuff(GameMaster game);
-    }
-
-    public void ApplyBuffCards(List<GameObject> checkCardList, GameMaster gameMaster)
-    {
-        foreach (GameObject card in checkCardList)
-        {
-            var buffs = card.GetComponentsInChildren<IBuffCard>();
-            foreach (var buff in buffs)
+            var effects = card.GetComponents<ICardEffect>();
+            foreach (var effect in effects)
             {
-                buff.ApplyBuff(gameMaster);
+                effect.Effect();
+            }
+
+            if (scoreManager != null && scoreManager.uiManager != null)
+            {
+                scoreManager.uiManager.UpdateScoreCalUI(
+                    scoreManager.rate,
+                    scoreManager.scoreYet,
+                    scoreManager.resultScore
+                );
+            }
+
+            yield return new WaitForSeconds(0.5f);
+        }
+        Debug.Log("[BuffManager] ApplyBuffCards 완료");
+    }
+
+    public void ApplyStartBuffs()
+    {
+        foreach (var card in buffCardList)
+        {
+            var data = card.GetComponent<CardData>();
+            if (data != null && data.buffType == CardData.BuffType.OnStart)
+            {
+                foreach (var effect in card.GetComponents<ICardEffect>())
+                {
+                    effect.Effect();
+                }
             }
         }
     }

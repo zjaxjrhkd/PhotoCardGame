@@ -921,6 +921,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiManager: {fileID: 0}
   cardSpawner: {fileID: 0}
+  maxSetCount: 3
+  maxDropCount: 3
   coin: 0
   winCoin: 5
 --- !u!4 &346199883
@@ -993,7 +995,7 @@ MonoBehaviour:
   deckCountText: {fileID: 2020304225}
   rateText: {fileID: 1985304018}
   scoreYetText: {fileID: 1184558889}
-  collectorCheckScore: {fileID: 1184558889}
+  resultCheckScore: {fileID: 0}
   collectorResultImages:
   - {fileID: 540333216}
   - {fileID: 1311177280}
@@ -1012,8 +1014,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   score: 0
+  scoreYet: 0
   resultScore: 0
   rate: 1
+  uiManager: {fileID: 0}
 --- !u!114 &346199892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1063,6 +1067,10 @@ MonoBehaviour:
   buffZ: -0.1
   buffDefaultSpacing: 1
   buffMinSpacing: 0.3
+  uiManager: {fileID: 0}
+  gameMaster: {fileID: 0}
+  scoreManager: {fileID: 0}
+  cardManager: {fileID: 0}
 --- !u!1 &347465019
 GameObject:
   m_ObjectHideFlags: 0

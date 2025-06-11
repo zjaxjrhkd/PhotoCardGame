@@ -10,6 +10,9 @@ public class CardData : MonoBehaviour
     public enum CardType { Character, Buff }
     public CardType cardType;
 
+    public enum BuffType { None, Always, OnStart } // Ãß°¡
+    public BuffType buffType;
+
     public void InitEffects(ScoreManager scoreManager, GameMaster gameMaster, CardManager cardManager)
     {
         var effects = GetComponents<ICardEffect>();
