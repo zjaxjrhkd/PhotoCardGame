@@ -1,10 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class GameMaster : MonoBehaviour
 {
     public enum GameState { Draw, Select, Shop, ShopEnd, End }
     private GameState gameState;
+
+    public enum SetProcessState { None, CardEffect, Buff, Collector, Calculate, Done }
+    private SetProcessState setProcessState;
 
     private CardManager cardManager;
     private BuffManager buffManager;
@@ -16,8 +20,8 @@ public class GameMaster : MonoBehaviour
 
     private int currentSetCount;
     private int currentDropCount;
-    private int maxSetCount = 3;
-    private int maxDropCount = 99;
+    public int maxSetCount = 3;
+    public int maxDropCount = 3;
     private string stageMessage;
     private int drawCount;
 
@@ -36,6 +40,12 @@ public class GameMaster : MonoBehaviour
         stageManager = GetComponent<StageManager>();
         uiManager = GetComponent<UIManager>();
         shopManager = GetComponent<ShopManager>();
+        scoreManager.uiManager = uiManager;
+        buffManager.uiManager = uiManager;
+        buffManager.gameMaster = this;
+        buffManager.scoreManager = scoreManager;
+        buffManager.cardManager = cardManager;
+
     }
 
     void Start()
@@ -64,6 +74,13 @@ public class GameMaster : MonoBehaviour
                 // 게임 종료 처리 (UI 등)
                 break;
         }
+
+        // Set 처리 상태 머신
+        if (setProcessState != SetProcessState.None && setProcessState != SetProcessState.Done)
+        {
+            HandleSetProcess();
+        }
+
         if (gameState == GameState.Shop)
         {
             buffManager.DetectBuffCardClick(coin, SpendCoin);
@@ -72,22 +89,39 @@ public class GameMaster : MonoBehaviour
 
     public void StartGame()
     {
+        maxSetCount = 3; // 초기 Set 사용 횟수 설정
+        maxDropCount = 3;
+
+        buffManager.ApplyStartBuffs(); // 게임 시작 시 버프 적용
+
         currentSetCount = maxSetCount;
         currentDropCount = maxDropCount;
+
         scoreManager.SetScore();
         cardManager.SetCardList();
         stageManager.Initialize();
+        
 
         // 목표점수 할당 (예: 스테이지별로 다르게)
         targetScore = stageManager.GetTargetScore(); // 또는 직접 할당
 
+        AllUIUpdate();
+        stageManager.UpdateStageImage();
+        isFirstDraw = true;
+        gameState = GameState.Draw;
+        setProcessState = SetProcessState.None; // Set 처리 상태 초기화
+    }
+
+    public void AllUIUpdate()
+    {
         uiManager.UpdateScoreUI(scoreManager.score, targetScore);
         uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
         uiManager.UpdateCoinUI(coin);
-        stageManager.UpdateStageImage();
-        uiManager.HideCollectorComboImages();
-        isFirstDraw = true;
-        gameState = GameState.Draw;
+        if (setProcessState == SetProcessState.Calculate)
+        {
+            uiManager.HideCollectorComboImages();
+        }
+        
     }
 
 
@@ -99,6 +133,93 @@ public class GameMaster : MonoBehaviour
             isFirstDraw = false;
         }
         gameState = GameState.Select;
+    }
+
+    private void HandleSetProcess()
+    {
+        switch (setProcessState)
+        {
+            case SetProcessState.CardEffect:
+                StartCoroutine(CardEffectCoroutine());
+                setProcessState = SetProcessState.None; // 중복 실행 방지
+                break;
+            case SetProcessState.Collector:
+                StartCoroutine(CollectorCoroutine());
+                setProcessState = SetProcessState.None;
+                break;
+            case SetProcessState.Buff:
+                StartCoroutine(BuffEffectCoroutine());
+                setProcessState = SetProcessState.None;
+                break;
+            case SetProcessState.Calculate:
+                scoreManager.CalculateResultScore();
+                AllUIUpdate();
+                scoreManager.SetCalculateResutScore();
+
+                if (cardManager.selectCardList != null)
+                {
+                    foreach (var card in cardManager.selectCardList)
+                    {
+                        if (card != null)
+                            Destroy(card);
+                    }
+                    cardManager.selectCardList = new List<GameObject>(new GameObject[7]);
+                }
+
+                foreach (GameObject card in cardManager.checkCardList)
+                {
+                    GameObject parentCard = card.transform.parent.gameObject;
+                    cardManager.playCardList.Remove(parentCard);
+                    Destroy(parentCard);
+                }
+
+                drawCount = cardManager.checkCardList.Count;
+                cardManager.DrawCards(drawCount);
+                cardManager.checkCardList.Clear();
+
+                if (stageManager.CheckStageResult(scoreManager.score, out stageMessage))
+                {
+                    AddCoin(winCoin);
+                    gameState = GameState.Shop;
+                    OpenShop();
+                }
+                else if (currentSetCount == 0)
+                {
+                    gameState = GameState.End;
+                    HandleGameEnd();
+                }
+                else
+                {
+                    gameState = GameState.Draw;
+                }
+
+                setProcessState = SetProcessState.Done;
+                break;
+        }
+    }
+
+    // 코루틴에서 카드 이펙트 적용 후 상태 전환
+    private IEnumerator CardEffectCoroutine()
+    {
+        yield return StartCoroutine(scoreManager.ApplyCardEffects(cardManager.checkCardList));
+        AllUIUpdate();
+        setProcessState = SetProcessState.Collector;
+    }
+
+    private IEnumerator BuffEffectCoroutine()
+    {
+        Debug.Log("[GameMaster] BuffEffectCoroutine 시작");
+        yield return StartCoroutine(buffManager.ApplyBuffCards(buffManager.buffCardList));
+        Debug.Log("[GameMaster] BuffEffectCoroutine 종료, Collector 단계로 이동");
+        setProcessState = SetProcessState.Calculate;
+    }
+
+    private IEnumerator CollectorCoroutine()
+    {
+        Debug.Log("[GameMaster] CollectorCoroutine 시작");
+        yield return StartCoroutine(scoreManager.ApplyCollectorCombosCoroutine(cardManager.checkCardList));
+        Debug.Log("[GameMaster] CollectorCoroutine 종료, Calculate 단계로 이동");
+        setProcessState = SetProcessState.Buff;
     }
 
     public void OnSetButtonPressed()
@@ -114,74 +235,11 @@ public class GameMaster : MonoBehaviour
             return;
         }
 
-        /*// 결과 텍스트 초기화
-        if (uiManager.resultText != null)
-            uiManager.resultText.text = "";
-        */
         currentSetCount--;
         uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
 
-        //점수 계산 및 UI업데이트
-        scoreManager.ApplyCardEffects(cardManager.checkCardList);
-        buffManager.ApplyBuffCards(cardManager.checkCardList, this);
-        scoreManager.ApplyCollectorCombos(cardManager.checkCardList);
-        scoreManager.CalculateResultScore();
-        uiManager.UpdateScoreUI(scoreManager.score, targetScore);
-
-        // selectCardList에 뭐가 있는지 확인
-        if (cardManager.selectCardList != null && cardManager.selectCardList.Count > 0)
-        {
-            Debug.Log("[GameMaster] OnSetButtonPressed() 호출 시 selectCardList 내용:");
-            foreach (var card in cardManager.selectCardList)
-            {
-                if (card != null)
-                    Debug.Log($" - {card.name}");
-                else
-                    Debug.Log(" - null");
-            }
-        }
-        else
-        {
-            Debug.Log("[GameMaster] OnSetButtonPressed() 호출 시 selectCardList가 비어있음");
-        }
-
-        // selectCardList의 오브젝트도 Destroy 및 리스트 7칸짜리로 재초기화
-        if (cardManager.selectCardList != null)
-        {
-            foreach (var card in cardManager.selectCardList)
-            {
-                if (card != null)
-                    Destroy(card);
-            }
-            cardManager.selectCardList = new List<GameObject>(new GameObject[7]);
-        }
-
-        foreach (GameObject card in cardManager.checkCardList)
-        {
-            GameObject parentCard = card.transform.parent.gameObject;
-            cardManager.playCardList.Remove(parentCard);
-            Destroy(parentCard);
-        }
-
-        drawCount = cardManager.checkCardList.Count;
-        cardManager.DrawCards(drawCount);
-        cardManager.checkCardList.Clear();
-
-        if (stageManager.CheckStageResult(scoreManager.score, out stageMessage))
-        {
-            AddCoin(winCoin);
-            gameState = GameState.Shop;
-            OpenShop();
-        }
-        else if (currentSetCount == 0)
-        {
-            gameState = GameState.End;
-            HandleGameEnd();
-        }
-        else
-        {
-            gameState = GameState.Draw;
-        }
+        // Set 처리 상태 시작
+        setProcessState = SetProcessState.CardEffect;
     }
 
     public void OnDropButtonPressed()

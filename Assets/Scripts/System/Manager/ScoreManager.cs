@@ -3,6 +3,8 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
+
 
 public class ScoreManager : MonoBehaviour
 {
@@ -10,6 +12,7 @@ public class ScoreManager : MonoBehaviour
     public int scoreYet;
     public int resultScore;
     public float rate = 1.0f; // 배율
+    public UIManager uiManager;
 
 
     // ScoreCalculator에서 가져온 콜렉터 Dictionary
@@ -111,23 +114,30 @@ public class ScoreManager : MonoBehaviour
         return result;
     }
 
-    // 예시: 카드 효과 적용
-    public void ApplyCardEffects(List<GameObject> checkCardList)
+    public IEnumerator ApplyCardEffects(List<GameObject> checkCardList)
     {
-        foreach (var card in checkCardList)
+        // 복사본 생성 (반복 중 리스트 변경 방지)
+        var cardListCopy = new List<GameObject>(checkCardList);
+
+        foreach (var card in cardListCopy)
         {
+            if (card == null) continue;
+
             CardData cardData = card.GetComponent<CardData>();
             if (cardData != null)
             {
-                // 예시: 카드마다 10점 추가
-                score += 10;
+                scoreYet += 10;
                 cardData.UseEffect();
+                resultScore = Mathf.RoundToInt(scoreYet * rate);
+
+                if (uiManager != null)
+                    uiManager.UpdateScoreCalUI(rate, scoreYet, resultScore);
             }
+            yield return new WaitForSeconds(0.5f); // 0.5초 대기
         }
     }
 
-    // 예시: 콜렉터 조합 점수 적용
-    public void ApplyCollectorCombos(List<GameObject> checkCardList)
+    public IEnumerator ApplyCollectorCombosCoroutine(List<GameObject> checkCardList)
     {
         List<int> ownedCardIds = new List<int>();
         foreach (var card in checkCardList)
@@ -140,7 +150,14 @@ public class ScoreManager : MonoBehaviour
         var combos = GetMatchedCollectorScores(ownedCardIds);
         foreach (var combo in combos)
         {
-            score += combo.Value;
+            scoreYet += combo.Value;
+            resultScore = Mathf.RoundToInt(scoreYet * rate);
+
+            // 점수 계산 UI 갱신
+            if (uiManager != null)
+                uiManager.UpdateScoreCalUI(rate, scoreYet, resultScore);
+
+            yield return new WaitForSeconds(0.5f); // 0.5초 대기
         }
     }
 
@@ -148,11 +165,19 @@ public class ScoreManager : MonoBehaviour
     {
         resultScore = Mathf.RoundToInt(scoreYet * rate);
         Debug.Log($"[ScoreManager] scoreYet: {scoreYet}, rate: {rate}, resultScore: {resultScore}");
+        score += resultScore;
         return resultScore;
     }
 
     public void SetScore()
     {
         score = 0;
+    }
+
+    public void SetCalculateResutScore()
+    {
+        scoreYet = 0;
+        rate = 1.0f;
+        resultScore = 0;
     }
 }

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BasicJooin : MonoBehaviour, ICardEffect
+public class BuffChami : MonoBehaviour
 {
     private ScoreManager scoreManager;
     private GameMaster gameMaster;
@@ -14,14 +14,17 @@ public class BasicJooin : MonoBehaviour, ICardEffect
         this.scoreManager = scoreManager;
         this.gameMaster = gameMaster;
         this.cardManager = cardManager;
+        Debug.Log($"[BuffChuros] Init 호출됨! scoreManager: {(scoreManager != null)}, gameMaster: {(gameMaster != null)}, cardManager: {(cardManager != null)}");
     }
 
     public void Effect()
     {
-        Debug.Log("BasicJooin 효과 발동!");
-        if (scoreManager != null)
+
+        Debug.Log("차미 효과 발동!");
+        if (gameMaster != null)
         {
-            scoreManager.scoreYet += 100;
+            gameMaster.maxDropCount += 1;
+            Debug.Log($"Drop 증가: {gameMaster.maxDropCount}");
         }
         // gameMaster 활용도 가능
     }
