@@ -7,7 +7,7 @@ public class GameMaster : MonoBehaviour
     public enum GameState { Draw, Select, Shop, ShopEnd, End }
     private GameState gameState;
 
-    public enum SetProcessState { None, CardEffect, Buff, Collector, Calculate, Done }
+    public enum SetProcessState { None, Idle, CardEffect, Buff, Collector, Calculate, Done }
     private SetProcessState setProcessState;
 
     private CardManager cardManager;
@@ -76,7 +76,7 @@ public class GameMaster : MonoBehaviour
         }
 
         // Set 처리 상태 머신
-        if (setProcessState != SetProcessState.None && setProcessState != SetProcessState.Done)
+        if (setProcessState != SetProcessState.None && setProcessState != SetProcessState.Idle)
         {
             HandleSetProcess();
         }
@@ -109,7 +109,7 @@ public class GameMaster : MonoBehaviour
         stageManager.UpdateStageImage();
         isFirstDraw = true;
         gameState = GameState.Draw;
-        setProcessState = SetProcessState.None; // Set 처리 상태 초기화
+        setProcessState = SetProcessState.Idle; // Set 처리 상태 초기화
     }
 
     public void AllUIUpdate()
@@ -193,7 +193,7 @@ public class GameMaster : MonoBehaviour
                     gameState = GameState.Draw;
                 }
 
-                setProcessState = SetProcessState.Done;
+                setProcessState = SetProcessState.Idle;
                 break;
         }
     }
@@ -224,43 +224,50 @@ public class GameMaster : MonoBehaviour
 
     public void OnSetButtonPressed()
     {
-        if (currentSetCount <= 0)
+        if (setProcessState == SetProcessState.Idle)
         {
-            Debug.LogWarning("Set 사용 횟수를 모두 사용했습니다.");
-            return;
-        }
-        if (cardManager.checkCardList.Count == 0)
-        {
-            Debug.LogWarning("선택된 카드가 없습니다.");
-            return;
-        }
 
-        currentSetCount--;
-        uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
+            if (currentSetCount <= 0)
+            {
+                Debug.LogWarning("Set 사용 횟수를 모두 사용했습니다.");
+                return;
+            }
+            if (cardManager.checkCardList.Count == 0)
+            {
+                Debug.LogWarning("선택된 카드가 없습니다.");
+                return;
+            }
 
-        // Set 처리 상태 시작
-        setProcessState = SetProcessState.CardEffect;
+            currentSetCount--;
+            uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
+
+            // Set 처리 상태 시작
+            setProcessState = SetProcessState.CardEffect;
+        }
+    
     }
-
     public void OnDropButtonPressed()
     {
-        if (currentDropCount <= 0)
+        if (setProcessState == SetProcessState.Idle)
         {
-            Debug.LogWarning("Drop 사용 횟수를 모두 사용했습니다.");
-            return;
+            if (currentDropCount <= 0)
+            {
+                Debug.LogWarning("Drop 사용 횟수를 모두 사용했습니다.");
+                return;
+            }
+            if (cardManager.checkCardList.Count == 0)
+            {
+                Debug.LogWarning("선택된 카드가 없습니다.");
+                return;
+            }
+
+            currentDropCount--;
+            uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
+
+            cardManager.DropAndDrawSelectedCards();
+
+            uiManager.HideCollectorComboImages();
         }
-        if (cardManager.checkCardList.Count == 0)
-        {
-            Debug.LogWarning("선택된 카드가 없습니다.");
-            return;
-        }
-
-        currentDropCount--;
-        uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
-
-        cardManager.DropAndDrawSelectedCards();
-
-        uiManager.HideCollectorComboImages();
     }
 
     public void OnNextStagePressed()
