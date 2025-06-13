@@ -19,12 +19,25 @@ public class BuffYasu : MonoBehaviour, ICardEffect
 
     public void Effect()
     {
-        Debug.Log("YASU 효과 발동!");
-        if (scoreManager != null)
+        Debug.Log("야수 효과 발동!");
+
+        if (scoreManager != null && cardManager != null)
         {
-            scoreManager.rate += 0.5f;
-            Debug.Log($"rate 증가: {scoreManager.rate}");
+            // 적용 대상 카드 ID 목록
+            int[] targetIds = { 2, 9, 16, 23, 30, 37, 44, 51 };
+            int addCount = 0;
+
+            foreach (var card in cardManager.checkCardList)
+            {
+                if (card == null) continue;
+                CardData data = card.GetComponent<CardData>();
+                if (data != null && System.Array.Exists(targetIds, id => id == data.cardId))
+                {
+                    scoreManager.scoreYet += 10;
+                    addCount++;
+                }
+            }
+            Debug.Log($"BuffChuros: {addCount}장에 대해 scoreYet +10 적용 (총 +{addCount * 10})");
         }
-        // gameMaster 활용도 가능
     }
 }

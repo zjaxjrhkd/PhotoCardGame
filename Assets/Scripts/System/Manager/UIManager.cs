@@ -45,7 +45,7 @@ public class UIManager : MonoBehaviour
     }
     public void UpdateScoreCalUI(float rate, int scoreYet, int resultScore)
     {
-        if (rateText != null) rateText.text = $"{rate}";
+        if (rateText != null) rateText.text = $"X {rate}";
         if (scoreYetText != null) scoreYetText.text = $"{scoreYet}";
         if (resultCheckScore != null) resultCheckScore.text = $"{resultScore}";
     }
@@ -80,9 +80,9 @@ public class UIManager : MonoBehaviour
             collectorCheckScore.text = totalScore.ToString();
         */
         // 세트 조합 이름 목록
-        HashSet<string> setNames = new HashSet<string>
+        HashSet<string> setNames = new HashSet<string> //여기에 넣으면 큰 사진으로 나옴
     {
-        "Vlup!", "Vfes", "CheerUp!", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
+        "Vlup", "CheerUp!", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
     };
 
         int normalIdx = 0;
@@ -136,6 +136,7 @@ public class UIManager : MonoBehaviour
             case "노이콜렉터": return "Image/Result/5.Noi";
             case "리미콜렉터": return "Image/Result/6.Limi";
             case "라즈콜렉터": return "Image/Result/7.Raz";
+
             // 세트/특수 조합도 필요시 추가
             default: return "Image/Result/8.Concept";
         }
@@ -152,13 +153,15 @@ public class UIManager : MonoBehaviour
             case "리미콜렉터": return "Limi";
             case "라즈콜렉터": return "Raz";
             case "Vlup": return "Vlup!";
-            case "Vfes": return "Vfes";
+            case "Vfes1": return "Vfes1";
+            case "Vfes2": return "Vfes2";
             case "CheerUp": return "CheerUp";
             case "ColdSleep": return "ColdSleep";
             case "Daystar": return "Daystar";
             case "Innovill": return "Innovill";
             case "LoveLetter": return "LoveLetter";
             case "Mea": return "Mea";
+            case "Dantalk": return "Dantalk";
 
             default: return "Default";
         }

@@ -20,11 +20,24 @@ public class BuffChuros : MonoBehaviour, ICardEffect
     public void Effect()
     {
         Debug.Log("churos 효과 발동!");
-        if (scoreManager != null)
+
+        if (scoreManager != null && cardManager != null)
         {
-            scoreManager.scoreYet += 100;
-            Debug.Log($"점수 증가: {scoreManager.score}");
+            // 적용 대상 카드 ID 목록
+            int[] targetIds = { 1, 8, 15, 22, 29, 36, 43, 50 };
+            int addCount = 0;
+
+            foreach (var card in cardManager.checkCardList)
+            {
+                if (card == null) continue;
+                CardData data = card.GetComponent<CardData>();
+                if (data != null && System.Array.Exists(targetIds, id => id == data.cardId))
+                {
+                    scoreManager.scoreYet += 10;
+                    addCount++;
+                }
+            }
+            Debug.Log($"BuffChuros: {addCount}장에 대해 scoreYet +10 적용 (총 +{addCount * 10})");
         }
-        // gameMaster 활용도 가능
     }
 }

@@ -240,9 +240,7 @@ public class CardManager : MonoBehaviour
 
     public void AddCheckCardList(CardState cardStateRead, CardData cardDataRead)
     {
-        if (checkCardList.Count >= 7)
-            return;
-
+        // 해제(클릭 해제)는 항상 허용해야 하므로, 선택(추가)일 때만 7개 제한
         if (cardStateRead == null || cardDataRead == null) return;
 
         GameObject card = cardDataRead.gameObject;
@@ -250,6 +248,9 @@ public class CardManager : MonoBehaviour
 
         if (cardStateRead.isClick)
         {
+            if (checkCardList.Count >= 7)
+                return;
+
             if (!checkCardList.Contains(card))
                 checkCardList.Add(card);
 
@@ -359,6 +360,7 @@ public class CardManager : MonoBehaviour
     }
 
 
+
     public void DropAndDrawSelectedCards()
     {
         int dropCount = checkCardList.Count;
@@ -390,7 +392,7 @@ public class CardManager : MonoBehaviour
             if (cardData != null)
             {
                 cardData.InitEffects(scoreManager, gameMaster, this);
-                Debug.Log($"[CardManager] InitEffects 호출됨: {cardData.cardName} (ID: {cardData.cardId}, 오브젝트: {cardObj.name})");
+                //Debug.Log($"[CardManager] InitEffects 호출됨: {cardData.cardName} (ID: {cardData.cardId}, 오브젝트: {cardObj.name})");
             }
             else
             {

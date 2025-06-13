@@ -96,6 +96,7 @@ GameObject:
   - component: {fileID: 640331457347648247}
   - component: {fileID: 1684024087024689895}
   - component: {fileID: 9157111277336514647}
+  - component: {fileID: 5559982677604249676}
   m_Layer: 0
   m_Name: Data
   m_TagString: Untagged
@@ -180,7 +181,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uCE74\uB4DC \uC124\uBA85 \uC608\uC2DC"
+  cardInfo: "\uC190\uC5D0 \uB4E4\uACE0 \uC788\uC73C\uBA74 Score+10 / Cheer"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,6 +197,20 @@ MonoBehaviour:
   cardId: 18
   cardName: 
   cardType: 0
+  buffType: 0
+  playType: 0
+--- !u!114 &5559982677604249676
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6579297294108217466}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 891a82a66c2cf6f48ab38b4c26a1f035, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8949536555947873314
 GameObject:
   m_ObjectHideFlags: 0

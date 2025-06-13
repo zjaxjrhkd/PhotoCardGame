@@ -126,7 +126,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6579297294108217466}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -195,6 +195,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardId: 0
   cardName: 
+  cardType: 0
+  buffType: 0
+  playType: 0
 --- !u!1 &8949536555947873314
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,7 +17,7 @@ public class CardHoverUI : MonoBehaviour
         if (hoverUI != null)
             hoverUI.SetActive(false); // 시작 시 꺼놓기
     }
-
+    
     private void OnMouseEnter()
     {
         if (CanShowHoverUI())
@@ -28,7 +28,7 @@ public class CardHoverUI : MonoBehaviour
             hoverUI.SetActive(true);
         }
     }
-
+    
     private void OnMouseExit()
     {
         if (hoverUI != null)

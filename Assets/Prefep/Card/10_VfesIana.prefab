@@ -73,12 +73,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 4babce011e76b274f9a6935a9062171c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 14a44780b885e564f992def02d55bd96, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.33, y: 2.93}
+  m_Size: {x: 1.8, y: 2.6}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -180,7 +180,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uCE74\uB4DC \uC124\uBA85 \uC608\uC2DC"
+  cardInfo: "\uCF5C\uB809\uD130 \uC810\uC218\uAC00 84\uC758 \uBC30\uC218 / Vfes1"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,6 +195,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardId: 10
   cardName: 
+  cardType: 0
+  buffType: 0
+  playType: 1
 --- !u!1 &8949536555947873314
 GameObject:
   m_ObjectHideFlags: 0
