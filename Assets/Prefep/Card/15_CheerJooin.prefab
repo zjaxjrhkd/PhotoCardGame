@@ -181,7 +181,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uCE74\uB4DC \uC124\uBA85 \uC608\uC2DC"
+  cardInfo: "Set\uC2DC Score + 100 / Cheer"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -197,6 +197,8 @@ MonoBehaviour:
   cardId: 15
   cardName: CheerJooin
   cardType: 0
+  buffType: 0
+  playType: 1
 --- !u!114 &7525984366727341171
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BuffChami : MonoBehaviour
+public class BuffChami : MonoBehaviour, ICardEffect
 {
     private ScoreManager scoreManager;
     private GameMaster gameMaster;
@@ -19,13 +19,25 @@ public class BuffChami : MonoBehaviour
 
     public void Effect()
     {
-
         Debug.Log("차미 효과 발동!");
-        if (gameMaster != null)
+
+        if (scoreManager != null && cardManager != null)
         {
-            gameMaster.maxDropCount += 1;
-            Debug.Log($"Drop 증가: {gameMaster.maxDropCount}");
+            // 적용 대상 카드 ID 목록
+            int[] targetIds = { 4, 11, 18, 25, 32, 39, 46, 53 };
+            int addCount = 0;
+
+            foreach (var card in cardManager.checkCardList)
+            {
+                if (card == null) continue;
+                CardData data = card.GetComponent<CardData>();
+                if (data != null && System.Array.Exists(targetIds, id => id == data.cardId))
+                {
+                    scoreManager.scoreYet += 10;
+                    addCount++;
+                }
+            }
+            Debug.Log($"BuffChuros: {addCount}장에 대해 scoreYet +10 적용 (총 +{addCount * 10})");
         }
-        // gameMaster 활용도 가능
     }
 }

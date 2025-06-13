@@ -197,7 +197,7 @@ MonoBehaviour:
   cardId: 103
   cardName: 
   cardType: 1
-  buffType: 2
+  buffType: 1
 --- !u!114 &5517279798235693243
 MonoBehaviour:
   m_ObjectHideFlags: 0

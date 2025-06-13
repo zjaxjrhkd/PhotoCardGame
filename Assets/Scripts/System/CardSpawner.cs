@@ -16,13 +16,6 @@ public class CardSpawner : MonoBehaviour
     public GameObject hoverUI; // 씬에서 드래그해 연결
     public TMPro.TextMeshProUGUI hoverText; // 씬에서 드래그해 연결
 
-
-    public void SetDeckSpawnPosition()
-    {
-        deckSpawnPosition = new Vector3(7.6f, -3.2f, -0.1f);
-        Instantiate(deckPrefab, deckSpawnPosition, Quaternion.identity);
-    }
-
     public List<GameObject> SpawnCardsByID(List<int> cardIds)
     {
         List<GameObject> result = new List<GameObject>();
@@ -63,6 +56,8 @@ public class CardSpawner : MonoBehaviour
 
 
 
+
+
     private GameObject FindCardPrefabById(int id)
     {
         foreach (var prefab in cardListSO.cards)
@@ -82,7 +77,7 @@ public class CardSpawner : MonoBehaviour
 
             if (data.cardId == id)
             {
-                Debug.Log($"프리팹 {prefab.name}이 ID {id}와 일치");
+                //Debug.Log($"프리팹 {prefab.name}이 ID {id}와 일치");
                 return prefab;
             }
         }

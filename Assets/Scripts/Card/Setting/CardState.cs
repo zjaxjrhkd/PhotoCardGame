@@ -16,7 +16,6 @@ public class CardState : MonoBehaviour
     {
         if (hoverUI != null)
             hoverUI.SetActive(false);
-        cardInfo = "카드 설명"; // 초기 카드 설명 설정
     }
 
     public void CardStateClicked()
@@ -33,7 +32,7 @@ public class CardState : MonoBehaviour
 
         transform.position += new Vector3(0f, 1f, -1f); // y+1 이동
 
-        Vector3 worldPos = transform.position + new Vector3(0, 2.2f, 0f); // 최종 y+3.2 기준
+        Vector3 worldPos = transform.position + new Vector3(0, 2.5f, 0f); // 최종 y+3.2 기준
         Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
 
         hoverUI.transform.position = screenPos;

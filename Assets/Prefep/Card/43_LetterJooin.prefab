@@ -180,7 +180,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uCE74\uB4DC \uC124\uBA85 \uC608\uC2DC"
+  cardInfo: "Set\uC2DC Score + 100 / \uB7EC\uBE0C\uB808\uD130"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,6 +195,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardId: 43
   cardName: 
+  cardType: 0
+  buffType: 0
+  playType: 1
 --- !u!1 &8949536555947873314
 GameObject:
   m_ObjectHideFlags: 0

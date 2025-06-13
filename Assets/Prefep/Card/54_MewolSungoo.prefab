@@ -195,6 +195,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cardId: 54
   cardName: 
+  cardType: 0
+  buffType: 0
+  playType: 1
 --- !u!1 &8949536555947873314
 GameObject:
   m_ObjectHideFlags: 0

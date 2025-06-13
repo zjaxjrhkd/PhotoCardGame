@@ -7,7 +7,7 @@ public class GameMaster : MonoBehaviour
     public enum GameState { Draw, Select, Shop, ShopEnd, End }
     private GameState gameState;
 
-    public enum SetProcessState { None, Idle, CardEffect, Buff, Collector, Calculate, Done }
+    public enum SetProcessState { None, Idle, HandCardEffect, CardEffect, Buff, Collector, Calculate, Done }
     private SetProcessState setProcessState;
 
     private CardManager cardManager;
@@ -139,6 +139,10 @@ public class GameMaster : MonoBehaviour
     {
         switch (setProcessState)
         {
+            case SetProcessState.HandCardEffect:
+                StartCoroutine(HandCardEffectCoroutine());
+                setProcessState = SetProcessState.None; // 중복 실행 방지
+                break;
             case SetProcessState.CardEffect:
                 StartCoroutine(CardEffectCoroutine());
                 setProcessState = SetProcessState.None; // 중복 실행 방지
@@ -197,7 +201,14 @@ public class GameMaster : MonoBehaviour
                 break;
         }
     }
-
+    
+    private IEnumerator HandCardEffectCoroutine()
+    {
+        yield return StartCoroutine(scoreManager.ApplyHandTypeCardEffects(cardManager.playCardList));
+        AllUIUpdate();
+        setProcessState = SetProcessState.CardEffect;
+    }
+    
     // 코루틴에서 카드 이펙트 적용 후 상태 전환
     private IEnumerator CardEffectCoroutine()
     {
@@ -205,7 +216,7 @@ public class GameMaster : MonoBehaviour
         AllUIUpdate();
         setProcessState = SetProcessState.Collector;
     }
-
+ 
     private IEnumerator BuffEffectCoroutine()
     {
         Debug.Log("[GameMaster] BuffEffectCoroutine 시작");
@@ -242,7 +253,7 @@ public class GameMaster : MonoBehaviour
             uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
 
             // Set 처리 상태 시작
-            setProcessState = SetProcessState.CardEffect;
+            setProcessState = SetProcessState.HandCardEffect;
         }
     
     }
