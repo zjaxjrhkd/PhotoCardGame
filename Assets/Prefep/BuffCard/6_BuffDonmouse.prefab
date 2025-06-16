@@ -198,6 +198,8 @@ MonoBehaviour:
   cardName: 
   cardType: 1
   buffType: 1
+  playType: 0
+  characterType: 9
 --- !u!114 &5868982412119682251
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -33,12 +33,29 @@ public class CardManager : MonoBehaviour
 
     public int totalDeckCount; // 총 장수(고정)
 
+    // 스테이지 관련 변수 (public)
+    public bool isLimiStage = false;
+    public bool isNoiStage = false;
+    public bool isRazStage = false;
+    public bool isIanaStage = false;
+
     void Start()
     {
         gameMaster = FindObjectOfType<GameMaster>();
         cardSpawner = GetComponent<CardSpawner>();
         if (scoreManager == null)
             scoreManager = FindObjectOfType<ScoreManager>();
+    }
+
+    /// <summary>
+    /// 스테이지 관련 변수 초기화 및 현재 스테이지에 맞게 재설정
+    /// </summary>
+    public void InitStageVariables()
+    {
+        isLimiStage = false;
+        isNoiStage = false;
+        isRazStage = false;
+        isIanaStage = false;
     }
 
     void Update()
@@ -61,16 +78,56 @@ public class CardManager : MonoBehaviour
         for (int i = 0; i < drawCount; i++)
         {
             int cardId = deckList[0];
-            drawCardList.Add(cardId);
             deckList.RemoveAt(0);
+
+            // Noi 스테이지: 1/4 확률로 59번 카드로 변경
+            if (isNoiStage && Random.value < 0.25f)
+            {
+                cardId = 59;
+            }
+
+            drawCardList.Add(cardId);
         }
 
         List<GameObject> spawnedCards = cardSpawner.SpawnCardsByID(drawCardList);
         playCardList.AddRange(spawnedCards);
         ArrangeCardsWithinRange();
 
-        InitDrawnCards();
+        // Raz 스테이지: 1/2 확률로 카드 뒷면 스프라이트로 변경
+        if (isRazStage)
+        {
+            Sprite backSprite = Resources.Load<Sprite>("Vlup/CardBack");
+            if (backSprite != null)
+            {
+                foreach (var cardObj in spawnedCards)
+                {
+                    if (cardObj == null) continue;
+                    if (Random.value < 0.5f)
+                    {
+                        // 카드 뒷면 스프라이트로 변경
+                        Transform dataTr = cardObj.transform.Find("Data");
+                        if (dataTr == null) continue;
+                        Transform bgTr = dataTr.Find("Background");
+                        if (bgTr == null) continue;
+                        var sr = bgTr.GetComponent<SpriteRenderer>();
+                        if (sr != null)
+                            sr.sprite = backSprite;
 
+                        // cardInfo(cardId 등)도 변경
+                        var cardState = cardObj.GetComponentInChildren<CardState>();
+                        if (cardState != null)
+                        {
+                            cardState.cardInfo = "ㅋㅋㅋㅋㅋ";
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[CardManager] Vlup/CardBack 스프라이트를 찾을 수 없습니다.");
+            }
+        }
+        InitDrawnCards();
 
         if (gameMaster != null)
         {
@@ -115,8 +172,23 @@ public class CardManager : MonoBehaviour
     public void SetDeckSuffle()
     {
         deckList.Clear();
-        for (int i = 1; i <= 54; i++) deckList.Add(i);
+        // Iana 스테이지면 0번 카드로 84장 채움
+        if (isIanaStage)
+        {
+            for (int i = 1; i <= 54; i++)
+                deckList.Add(i);
+            for (int i = 55; i < 85; i++)
+                deckList.Add(58); // 0번 카드 84장
+        }
+        else
+        {
+            for (int i = 1; i <= 54; i++)
+                deckList.Add(i);
+        }
+
         totalDeckCount = deckList.Count; // 셔플 직후 한 번만 저장
+
+        // 셔플
         for (int i = 0; i < deckList.Count; i++)
         {
             int randIndex = Random.Range(i, deckList.Count);
@@ -300,7 +372,7 @@ public class CardManager : MonoBehaviour
 
             // 점수 계산 UI 갱신 추가
             gameMaster.uiManager.UpdateScoreCalUI(
-                scoreManager.rate,scoreManager.scoreYet, scoreManager.resultScore       // scoreYet에 해당하는 값
+                scoreManager.rate, scoreManager.scoreYet, scoreManager.resultScore       // scoreYet에 해당하는 값
             );
         }
     }
@@ -375,9 +447,16 @@ public class CardManager : MonoBehaviour
         }
         checkCardList.Clear();
 
+        // Limi 스테이지면 1/2 확률로만 드로우
         int originalDrawEa = drawCardEa;
         drawCardEa = dropCount;
-        DrawCards(drawCardEa);
+
+        if (!isLimiStage || (isLimiStage && Random.value < 0.5f))
+        {
+            DrawCards(drawCardEa);
+        }
+        // else: 드로우를 하지 않음
+
         drawCardEa = originalDrawEa;
         ArrangeCardsWithinRange();
     }

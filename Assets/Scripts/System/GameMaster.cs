@@ -28,9 +28,12 @@ public class GameMaster : MonoBehaviour
     private bool isFirstDraw = true; // 게임 시작 후 첫 드로우만 10장
 
     public int coin;
-    public int winCoin=3;
+    public int winCoin = 3;
     private int targetScore = 2000;
 
+    // 랜덤 스테이지 타입 저장
+    private StageManager.StageType currentStageTypeX1;
+    private StageManager.StageType currentStageTypeX2;
 
     void Awake()
     {
@@ -45,7 +48,6 @@ public class GameMaster : MonoBehaviour
         buffManager.gameMaster = this;
         buffManager.scoreManager = scoreManager;
         buffManager.cardManager = cardManager;
-
     }
 
     void Start()
@@ -69,7 +71,6 @@ public class GameMaster : MonoBehaviour
             case GameState.ShopEnd:
                 StartGame();
                 break;
-
             case GameState.End:
                 // 게임 종료 처리 (UI 등)
                 break;
@@ -89,27 +90,39 @@ public class GameMaster : MonoBehaviour
 
     public void StartGame()
     {
-        maxSetCount = 3; // 초기 Set 사용 횟수 설정
-        maxDropCount = 3;
 
-        buffManager.ApplyStartBuffs(); // 게임 시작 시 버프 적용
+        maxSetCount = 3;
+        maxDropCount = 3;
+        stageManager.Initialize();
+
+        var stagePair = stageManager.DecideStageTypeAndUpdateImage();
+        if (stagePair.HasValue)
+        {
+            currentStageTypeX1 = stagePair.Value.x1;
+            currentStageTypeX2 = stagePair.Value.x2;
+            Debug.Log($"[GameMaster] 스테이지 타입 결정: x-1={currentStageTypeX1}, x-2={currentStageTypeX2}");
+        }
+        else
+        {
+            Debug.LogWarning("[GameMaster] 선택 가능한 스테이지 타입이 없습니다.");
+        }
+
+        targetScore = stageManager.GetTargetScore();
+        // 스테이지 효과 적용
+        stageManager.ApplyStageEffect(scoreManager, cardManager, buffManager, ref targetScore, ref coin);
+
+        buffManager.ApplyStartBuffs();
 
         currentSetCount = maxSetCount;
         currentDropCount = maxDropCount;
 
         scoreManager.SetScore();
         cardManager.SetCardList();
-        stageManager.Initialize();
-        
-
-        // 목표점수 할당 (예: 스테이지별로 다르게)
-        targetScore = stageManager.GetTargetScore(); // 또는 직접 할당
 
         AllUIUpdate();
-        stageManager.UpdateStageImage();
         isFirstDraw = true;
         gameState = GameState.Draw;
-        setProcessState = SetProcessState.Idle; // Set 처리 상태 초기화
+        setProcessState = SetProcessState.Idle;
     }
 
     public void AllUIUpdate()
@@ -121,9 +134,7 @@ public class GameMaster : MonoBehaviour
         {
             uiManager.HideCollectorComboImages();
         }
-        
     }
-
 
     private void HandleDraw()
     {
@@ -152,8 +163,12 @@ public class GameMaster : MonoBehaviour
                 setProcessState = SetProcessState.None;
                 break;
             case SetProcessState.Buff:
-                StartCoroutine(BuffEffectCoroutine());
-                setProcessState = SetProcessState.None;
+                if (!scoreManager.isSitryStage)
+                {
+                    StartCoroutine(BuffEffectCoroutine());
+                    setProcessState = SetProcessState.None;
+                }
+                else setProcessState = SetProcessState.Calculate;
                 break;
             case SetProcessState.Calculate:
                 scoreManager.CalculateResultScore();
@@ -183,6 +198,10 @@ public class GameMaster : MonoBehaviour
 
                 if (stageManager.CheckStageResult(scoreManager.score, out stageMessage))
                 {
+                    // 스테이지 클리어 시 클리어 타입 등록
+                    stageManager.MarkStageTypeCleared(currentStageTypeX1);
+                    stageManager.MarkStageTypeCleared(currentStageTypeX2);
+
                     AddCoin(winCoin);
                     gameState = GameState.Shop;
                     OpenShop();
@@ -201,22 +220,32 @@ public class GameMaster : MonoBehaviour
                 break;
         }
     }
-    
+
     private IEnumerator HandCardEffectCoroutine()
     {
         yield return StartCoroutine(scoreManager.ApplyHandTypeCardEffects(cardManager.playCardList));
         AllUIUpdate();
         setProcessState = SetProcessState.CardEffect;
     }
-    
-    // 코루틴에서 카드 이펙트 적용 후 상태 전환
+
     private IEnumerator CardEffectCoroutine()
     {
+        int cardCount = cardManager.checkCardList.Count;
+
         yield return StartCoroutine(scoreManager.ApplyCardEffects(cardManager.checkCardList));
+
+        // 벨디르 스테이지면 카드 개수만큼 코인 감소
+        if (scoreManager.isBeldirStage)
+        {
+            coin -= cardCount;
+            if (uiManager != null)
+                uiManager.UpdateCoinUI(coin);
+        }
+
         AllUIUpdate();
         setProcessState = SetProcessState.Collector;
     }
- 
+
     private IEnumerator BuffEffectCoroutine()
     {
         Debug.Log("[GameMaster] BuffEffectCoroutine 시작");
@@ -237,7 +266,6 @@ public class GameMaster : MonoBehaviour
     {
         if (setProcessState == SetProcessState.Idle)
         {
-
             if (currentSetCount <= 0)
             {
                 Debug.LogWarning("Set 사용 횟수를 모두 사용했습니다.");
@@ -255,8 +283,8 @@ public class GameMaster : MonoBehaviour
             // Set 처리 상태 시작
             setProcessState = SetProcessState.HandCardEffect;
         }
-    
     }
+
     public void OnDropButtonPressed()
     {
         if (setProcessState == SetProcessState.Idle)
@@ -307,7 +335,6 @@ public class GameMaster : MonoBehaviour
     {
         shopManager.gameObject.SetActive(true);
         shopManager.OpenShop();
-
     }
 
     // 코인 관련 메서드

@@ -952,9 +952,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a106f751504a4c4ead7afea73497850, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stageType: 2
   stageText: {fileID: 1048789771}
   stageImageListSO: {fileID: 11400000, guid: 68210b24b1d5a4c438fa7884f3b643d7, type: 2}
   stageUIImage: {fileID: 1459793253}
+  rozeCardPrefab: {fileID: 8949536555947873314, guid: a6b24ff4a1a46074c9cbc46fe6590a9e, type: 3}
+  backCardPrefab: {fileID: 8949536555947873314, guid: a6b24ff4a1a46074c9cbc46fe6590a9e, type: 3}
 --- !u!114 &346199887
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1018,6 +1021,8 @@ MonoBehaviour:
   resultScore: 0
   rate: 1
   uiManager: {fileID: 0}
+  isBeldirStage: 0
+  isSitryStage: 0
 --- !u!114 &346199892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1046,6 +1051,8 @@ MonoBehaviour:
   defaultDrawCardEa: 10
   drawCardEa: 1
   totalDeckCount: 0
+  isLimiStage: 0
+  moodLightCardPrefab: {fileID: 8949536555947873314, guid: a6b24ff4a1a46074c9cbc46fe6590a9e, type: 3}
 --- !u!114 &346199893
 MonoBehaviour:
   m_ObjectHideFlags: 0
