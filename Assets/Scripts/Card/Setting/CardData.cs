@@ -16,6 +16,9 @@ public class CardData : MonoBehaviour
     public enum PlayType { Hand, Check }
     public PlayType playType;
 
+    public enum CharacterType { Jooin, Beldir, Iana, Sitry, Noi, Limi, Raz, Churos, Chami, Donddatge, Muddung, Rasky, Roze, Yasu }
+    public CharacterType characterType;
+
     public void InitEffects(ScoreManager scoreManager, GameMaster gameMaster, CardManager cardManager)
     {
         var effects = GetComponents<ICardEffect>();

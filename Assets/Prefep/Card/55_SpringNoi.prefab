@@ -73,12 +73,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: eba0bc99ac353964aa6ddf461193244e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8c637ff9667a48e4cbad32d57b93d4d3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.8, y: 2.6}
+  m_Size: {x: 2.33, y: 2.93}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -180,7 +180,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uD14C\uB9C8\uC5D0 \uC0C1\uAD00\uC5C6\uC774 \uC774\uB178\uBE4C \uC870\uD569"
+  cardInfo: "\uCE74\uB4DC \uC124\uBA85 \uC608\uC2DC"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,12 +193,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a066e290c16225429c2b34d88c46245, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardId: 26
+  cardId: 54
   cardName: 
   cardType: 0
   buffType: 0
   playType: 1
-  characterType: 4
 --- !u!1 &8949536555947873314
 GameObject:
   m_ObjectHideFlags: 0
@@ -209,7 +208,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3796667076923175730}
   m_Layer: 0
-  m_Name: 26_FoolNoi
+  m_Name: 55_SpringNoi
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -18,7 +18,8 @@ public class ScoreManager : MonoBehaviour
     private readonly List<int> dantalkGroup2 = new List<int> { 6, 13, 20, 27, 34, 41, 48 };
     private readonly List<int> dantalkGroup3 = new List<int> { 7, 14, 21, 28, 35, 42, 49 };
 
-
+    public bool isBeldirStage = false;
+    public bool isSitryStage = false;
 
     // ScoreCalculator에서 가져온 콜렉터 Dictionary
     public Dictionary<string, List<int>> collectors = new Dictionary<string, List<int>>()
@@ -41,6 +42,12 @@ public class ScoreManager : MonoBehaviour
         { "Mea", new List<int>{50,51,52,53} },
         { "Dantalk", new List<int>{} }
     };
+
+    public void InitStageFlags()
+    {
+        isBeldirStage = false;
+        isSitryStage = false;
+    }
 
     private int GetScoreByCount(string name, int count)
     {
