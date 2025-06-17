@@ -37,10 +37,13 @@ public class CardHoverUI : MonoBehaviour
 
     private bool CanShowHoverUI()
     {
-        // GameState가 Draw 상태이고 카드가 선택되지 않았을 때만 UI 표시
+        // 카드가 아니면(콤보/스테이지/상점 등) 항상 표시, 카드면 기존 조건
+        if (cardState == null)
+            return true;
+
         return gameMaster != null &&
                gameMaster.IsDrawState() &&
-               cardState != null &&
                !cardState.isClick;
     }
+
 }

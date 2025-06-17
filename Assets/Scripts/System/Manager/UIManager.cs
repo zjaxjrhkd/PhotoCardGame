@@ -63,7 +63,6 @@ public class UIManager : MonoBehaviour
     }
 
 
-
     public void UpdateCollectorResultUI(List<CollectorComboResult> combos)
     {
         // 모든 이미지 비활성화
@@ -71,16 +70,8 @@ public class UIManager : MonoBehaviour
             if (img != null) img.enabled = false;
         if (combos == null || combos.Count == 0)
             return;
-        /*
-        // 전체 조합 점수의 합을 표시
-        int totalScore = 0;
-        foreach (var combo in combos)
-            totalScore += combo.score;
-        if (collectorCheckScore != null)
-            collectorCheckScore.text = totalScore.ToString();
-        */
-        // 세트 조합 이름 목록
-        HashSet<string> setNames = new HashSet<string> //여기에 넣으면 큰 사진으로 나옴
+
+        HashSet<string> setNames = new HashSet<string>
     {
         "Vlup", "CheerUp!", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
     };
@@ -113,7 +104,16 @@ public class UIManager : MonoBehaviour
                 {
                     collectorResultImages[imageIdx].sprite = resultSprite;
                     collectorResultImages[imageIdx].enabled = true;
-                    Debug.Log($"[UIManager] Sprite 적용 성공: {resourcePath} (슬롯 {imageIdx})");
+
+                    // === 콤보 이름/점수 info 할당 ===
+                    var tooltip = collectorResultImages[imageIdx].GetComponent<UIHoverTooltip>();
+                    if (tooltip != null)
+                    {
+                        tooltip.comboName = c.collectorName;
+                        tooltip.info = c.collectorName;             }
+                                                        // =============================
+
+                        Debug.Log($"[UIManager] Sprite 적용 성공: {resourcePath} (슬롯 {imageIdx})");
                 }
                 else
                 {
