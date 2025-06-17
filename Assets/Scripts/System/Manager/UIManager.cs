@@ -18,6 +18,8 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI resultCheckScore;
 
     public Image[] collectorResultImages;
+    public Sprite defaultStageBackground; // 기본 배경 Sprite
+    public GameObject backGround;
 
 
     public void UpdateScoreUI(int score, int targetScore)
@@ -51,6 +53,47 @@ public class UIManager : MonoBehaviour
     }
 
 
+    public void UpdateBackgroundUI()
+    {
+        if (backGround != null && defaultStageBackground != null)
+        {
+            var sr = backGround.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = defaultStageBackground;
+                Debug.Log("[UIManager] BackGround 오브젝트의 스프라이트가 기본 이미지로 초기화되었습니다.");
+            }
+            else
+            {
+                Debug.LogWarning("[UIManager] BackGround 오브젝트에 SpriteRenderer가 없습니다.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[UIManager] 배경 초기화 실패: BackGround 오브젝트 또는 Sprite가 null입니다.");
+        }
+    }
+
+    public void ChangeStageBackground(Sprite newBackground)
+    {
+        if (backGround != null && newBackground != null)
+        {
+            var sr = backGround.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = newBackground;
+                Debug.Log("[UIManager] BackGround 오브젝트의 스프라이트가 변경되었습니다.");
+            }
+            else
+            {
+                Debug.LogWarning("[UIManager] BackGround 오브젝트에 SpriteRenderer가 없습니다.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[UIManager] 배경 이미지 변경 실패: BackGround 오브젝트 또는 Sprite가 null입니다.");
+        }
+    }
     /// <summary>
     /// 콜렉터 조합 결과 UI 갱신 (최대 3개까지)
     /// </summary>
@@ -152,7 +195,7 @@ public class UIManager : MonoBehaviour
             case "노이콜렉터": return "Noi";
             case "리미콜렉터": return "Limi";
             case "라즈콜렉터": return "Raz";
-            case "Vlup": return "Vlup!";
+            case "Vlup": return "Vlup";
             case "Vfes1": return "Vfes1";
             case "Vfes2": return "Vfes2";
             case "CheerUp": return "CheerUp";
