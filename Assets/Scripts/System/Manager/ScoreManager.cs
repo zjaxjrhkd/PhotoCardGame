@@ -108,9 +108,9 @@ public class ScoreManager : MonoBehaviour
 
         // 세트 이름 목록
         HashSet<string> setNames = new HashSet<string>
-        {
-            "Vlup", "Vfes1", "Vfes2", "CheerUp", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
-        };
+    {
+        "Vlup", "Vfes1", "Vfes2", "CheerUp", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
+    };
 
         foreach (var entry in collectors)
         {
@@ -146,7 +146,6 @@ public class ScoreManager : MonoBehaviour
                     score = GetScoreByCount(name, matchCount);
                 }
             }
-
             if (score > 0)
             {
                 result[name] = score;
@@ -157,6 +156,40 @@ public class ScoreManager : MonoBehaviour
         lastComboScores = new Dictionary<string, int>(result);
 
         return result;
+    }
+
+    public void CheckAndApplySetBackground(List<GameObject> checkCardList)
+    {
+        // 세트 이름 목록
+        HashSet<string> setNames = new HashSet<string>
+    {
+        "Vlup", "Vfes1", "Vfes2", "CheerUp", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
+    };
+
+        // 선택된 카드의 cardId 수집
+        List<int> ownedCardIds = new List<int>();
+        foreach (var card in checkCardList)
+        {
+            CardData cardData = card.GetComponent<CardData>();
+            if (cardData != null)
+                ownedCardIds.Add(cardData.cardId);
+        }
+
+        var combos = GetMatchedCollectorScores(ownedCardIds);
+
+        // 세트가 완성된 경우에만 배경 변경
+        foreach (var combo in combos)
+        {
+            if ((setNames.Contains(combo.Key) || combo.Key == "Dantalk") && combo.Value > 0)
+            {
+                string resourcePath = $"Image/BackGround/{combo.Key}";
+                Sprite newBackground = Resources.Load<Sprite>(resourcePath);
+                if (uiManager != null)
+                    uiManager.ChangeStageBackground(newBackground);
+                Debug.Log($"[ScoreManager] 세트/단톡 조합 완성: {combo.Key}, 배경 변경 시도 ({resourcePath})");
+                break;
+            }
+        }
     }
 
     public IEnumerator ApplyCardEffects(List<GameObject> checkCardList)

@@ -198,6 +198,8 @@ public class StageManager : MonoBehaviour
         }
     }
 
+
+
     public bool CheckStageResult(int currentScore, out string message)
     {
         string currentStage = stageOrder[currentStageIndex];

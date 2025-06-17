@@ -90,11 +90,12 @@ public class GameMaster : MonoBehaviour
 
     public void StartGame()
     {
+        uiManager.UpdateBackgroundUI();
 
         maxSetCount = 3;
         maxDropCount = 3;
         stageManager.Initialize();
-
+        
         var stagePair = stageManager.DecideStageTypeAndUpdateImage();
         if (stagePair.HasValue)
         {
@@ -276,6 +277,9 @@ public class GameMaster : MonoBehaviour
                 Debug.LogWarning("선택된 카드가 없습니다.");
                 return;
             }
+
+            // 세트 판정 및 배경 변경 ScoreManager에 위임
+            scoreManager.CheckAndApplySetBackground(cardManager.checkCardList);
 
             currentSetCount--;
             uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
