@@ -12,6 +12,11 @@ public class CardManager : MonoBehaviour
 
     public CardSpawner cardSpawner;
     public ScoreManager scoreManager; // 인스펙터에서 연결 또는 FindObjectOfType 사용
+    public GameObject otherUIObjects; // 비활성화/활성화할 나머지 UI 오브젝트들(인스펙터에서 할당)
+
+    public GameObject deckListParent; // DeckList 오브젝트
+    private bool isDeckListAtOrigin = false;
+
 
     // 카드 배치 좌표
     public float minX = -3.65f;
@@ -166,6 +171,107 @@ public class CardManager : MonoBehaviour
         {
             lastHoveredCard.HideHoverUI();
             lastHoveredCard = null;
+        }
+    }
+
+
+    /// <summary>
+    /// DeckList 오브젝트의 자식으로 deckList의 카드 오브젝트를 생성하고 X=-2.2~11.3에 균등 배치
+    /// </summary>
+    /// <summary>
+    /// DeckList 오브젝트의 자식으로 deckList의 카드 오브젝트를 생성하고 X=-2.2~11.3에 균등 배치
+    /// </summary>
+    public void OnClickCreateDeckListObjects()
+    {
+        if (deckListParent == null || cardSpawner == null || deckList == null || deckList.Count == 0)
+            return;
+
+        // 위치 토글 (월드 좌표)
+        if (!isDeckListAtOrigin)
+        {
+            deckListParent.SetActive(true);
+            deckListParent.transform.position = new Vector3(0f, 0f, -2f);
+
+            if (otherUIObjects != null)
+                otherUIObjects.SetActive(false);
+        }
+        else
+        {
+            deckListParent.SetActive(false);
+            deckListParent.transform.position = new Vector3(19f, 0f, 0f);
+
+            if (otherUIObjects != null)
+                otherUIObjects.SetActive(true);
+        }
+
+        isDeckListAtOrigin = !isDeckListAtOrigin;
+
+        // "Clone"이 포함된 자식만 삭제
+        foreach (Transform child in deckListParent.transform)
+        {
+            if (child.name.Contains("Clone"))
+                Destroy(child.gameObject);
+        }
+
+        // 카드 생성 (SpawnCardsByID 사용, 부모는 deckListParent로 직접 지정)
+        List<GameObject> spawnedCards = cardSpawner.SpawnCardsByID(deckList);
+
+        // cardId 기준으로 정렬
+        spawnedCards.Sort((a, b) =>
+        {
+            var dataA = a.GetComponentInChildren<CardData>();
+            var dataB = b.GetComponentInChildren<CardData>();
+            int idA = dataA != null ? dataA.cardId : 0;
+            int idB = dataB != null ? dataB.cardId : 0;
+            return idA.CompareTo(idB);
+        });
+
+        // 부모(DeckList)로 이동 및 콜라이더 비활성화
+        foreach (var cardObj in spawnedCards)
+        {
+            if (cardObj == null) continue;
+            cardObj.transform.SetParent(deckListParent.transform, false);
+
+            // 모든 Collider, Collider2D 비활성화
+            foreach (var collider in cardObj.GetComponentsInChildren<Collider>(true))
+                collider.enabled = false;
+            foreach (var collider2D in cardObj.GetComponentsInChildren<Collider2D>(true))
+                collider2D.enabled = false;
+        }
+
+        // X=-5.9 ~ 5.9, Y=-3.5 ~ 3.5, 한 줄에 최대 10개, 각 줄 균등 배치, Z는 -10부터 +0.1씩 증가
+        float startX = -5.9f;
+        float endX = 5.9f;
+        float startY = 3.5f;
+        float endY = -3.5f;
+        int maxPerRow = 10;
+        int count = spawnedCards.Count;
+
+        // 균등 분배를 위한 행/열 계산
+        int rowCount = Mathf.CeilToInt((float)count / maxPerRow);
+        int minCardsPerRow = count / rowCount;
+        int extra = count % rowCount;
+
+        float yStep = (rowCount > 1) ? (startY - endY) / (rowCount - 1) : 0f;
+        float z = -1f;
+        float zStep = -0.1f;
+        int cardIdx = 0;
+
+        for (int row = 0; row < rowCount; row++)
+        {
+            int cardsInThisRow = minCardsPerRow + (row < extra ? 1 : 0);
+            float xStep = (cardsInThisRow > 1) ? (endX - startX) / (cardsInThisRow - 1) : 0f;
+            float y = (rowCount == 1) ? (startY + endY) / 2f : startY - yStep * row;
+
+            for (int col = 0; col < cardsInThisRow; col++)
+            {
+                if (cardIdx >= count) break;
+                float x = (cardsInThisRow == 1) ? (startX + endX) / 2f : startX + xStep * col;
+                Vector3 pos = new Vector3(x, y, z);
+                spawnedCards[cardIdx].transform.localPosition = pos;
+                z += zStep;
+                cardIdx++;
+            }
         }
     }
 

@@ -18,6 +18,9 @@ public class ScoreManager : MonoBehaviour
     private readonly List<int> dantalkGroup2 = new List<int> { 6, 13, 20, 27, 34, 41, 48 };
     private readonly List<int> dantalkGroup3 = new List<int> { 7, 14, 21, 28, 35, 42, 49 };
 
+    public Dictionary<string, int> lastComboScores = new Dictionary<string, int>();
+
+
     public bool isBeldirStage = false;
     public bool isSitryStage = false;
 
@@ -105,9 +108,9 @@ public class ScoreManager : MonoBehaviour
 
         // 세트 이름 목록
         HashSet<string> setNames = new HashSet<string>
-    {
-        "Vlup", "Vfes1", "Vfes2", "CheerUp", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
-    };
+        {
+            "Vlup", "Vfes1", "Vfes2", "CheerUp", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
+        };
 
         foreach (var entry in collectors)
         {
@@ -124,7 +127,7 @@ public class ScoreManager : MonoBehaviour
                 bool hasGroup3 = dantalkGroup3.Any(id => ownedCardIds.Contains(id));
                 if (hasGroup1 && hasGroup2 && hasGroup3)
                 {
-                    score = 777; 
+                    score = 777;
                 }
             }
             else if (setNames.Contains(name))
@@ -149,6 +152,9 @@ public class ScoreManager : MonoBehaviour
                 result[name] = score;
             }
         }
+
+        // 콤보 점수 결과를 lastComboScores에 저장 (호버UI에서 접근 가능)
+        lastComboScores = new Dictionary<string, int>(result);
 
         return result;
     }
@@ -208,6 +214,8 @@ public class ScoreManager : MonoBehaviour
             }
         }
     }
+
+
     /*
     public IEnumerator ApplyHandTypeCardEffects(List<GameObject> playCardList)
     {
