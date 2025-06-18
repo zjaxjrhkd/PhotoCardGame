@@ -4,11 +4,13 @@ using System.Collections;
 
 public class GameMaster : MonoBehaviour
 {
-    public enum GameState { Draw, Select, Shop, ShopEnd, End }
+    public enum GameState { Draw, Select, Shop, ShopEnd, End, Option }
     private GameState gameState;
+    private GameState prevGameState; // 옵션 진입 전 상태 저장
 
-    public enum SetProcessState { None, Idle, HandCardEffect, CardEffect, Buff, Collector, Calculate, Done }
+    public enum SetProcessState { None, Option,Idle, HandCardEffect, CardEffect, Buff, Collector, Calculate, Done }
     private SetProcessState setProcessState;
+    private SetProcessState prevSetProcessState;
 
     private CardManager cardManager;
     private BuffManager buffManager;
@@ -17,6 +19,9 @@ public class GameMaster : MonoBehaviour
     public UIManager uiManager;
     private ShopManager shopManager;
     public CardSpawner cardSpawner;
+    public MusicManager musicManager; // 음악 매니저 추가
+
+    public GameObject optionUI;
 
     private int currentSetCount;
     private int currentDropCount;
@@ -48,6 +53,7 @@ public class GameMaster : MonoBehaviour
         buffManager.gameMaster = this;
         buffManager.scoreManager = scoreManager;
         buffManager.cardManager = cardManager;
+        musicManager = GetComponent<MusicManager>();
     }
 
     void Start()
@@ -91,21 +97,22 @@ public class GameMaster : MonoBehaviour
     public void StartGame()
     {
         uiManager.UpdateBackgroundUI();
+        musicManager.Init(); // 음악 매니저 초기화s
 
         maxSetCount = 3;
         maxDropCount = 3;
         stageManager.Initialize();
-        
+
         var stagePair = stageManager.DecideStageTypeAndUpdateImage();
         if (stagePair.HasValue)
         {
             currentStageTypeX1 = stagePair.Value.x1;
             currentStageTypeX2 = stagePair.Value.x2;
             Debug.Log($"[GameMaster] 스테이지 타입 결정: x-1={currentStageTypeX1}, x-2={currentStageTypeX2}");
-        }
-        else
-        {
-            Debug.LogWarning("[GameMaster] 선택 가능한 스테이지 타입이 없습니다.");
+
+            // x-1 스테이지에 해당하는 음악 재생
+            if (musicManager != null)
+                musicManager.PlayStageMusic(currentStageTypeX1);
         }
 
         targetScore = stageManager.GetTargetScore();
@@ -261,6 +268,37 @@ public class GameMaster : MonoBehaviour
         yield return StartCoroutine(scoreManager.ApplyCollectorCombosCoroutine(cardManager.checkCardList));
         Debug.Log("[GameMaster] CollectorCoroutine 종료, Calculate 단계로 이동");
         setProcessState = SetProcessState.Buff;
+    }
+
+    public void OnOptionButtonPressed()
+    {
+        prevGameState = gameState; // 옵션 진입 전 상태 저장
+        prevSetProcessState = setProcessState; // 옵션 진입 전 processState 저장
+        gameState = GameState.Option;
+        setProcessState = SetProcessState.Option;
+        if (optionUI != null)
+            optionUI.SetActive(true);
+        else
+            Debug.LogWarning("[GameMaster] optionUI가 할당되지 않았습니다.");
+    }
+
+    public void OnExitButtonPressed()
+    {
+        gameState = prevGameState; // 옵션 진입 전 상태로 복귀
+        setProcessState = prevSetProcessState; // 옵션 진입 전 processState로 복귀
+        if (optionUI != null)
+            optionUI.SetActive(false);
+    }
+
+
+    public void OnRestartButtonPressed()
+    {
+        // 옵션 UI가 열려 있으면 닫기
+        if (optionUI != null)
+            optionUI.SetActive(false);
+
+        // 게임 재시작
+        StartGame();
     }
 
     public void OnSetButtonPressed()
