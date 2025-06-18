@@ -98,6 +98,7 @@ public class GameMaster : MonoBehaviour
     {
         uiManager.UpdateBackgroundUI();
         musicManager.Init(); // 음악 매니저 초기화s
+        uiManager.HideCollectorComboImages();
 
         maxSetCount = 3;
         maxDropCount = 3;
