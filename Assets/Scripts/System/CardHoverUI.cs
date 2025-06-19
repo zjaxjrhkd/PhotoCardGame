@@ -17,18 +17,30 @@ public class CardHoverUI : MonoBehaviour
         if (hoverUI != null)
             hoverUI.SetActive(false); // 시작 시 꺼놓기
     }
-    
+    /*
     private void OnMouseEnter()
     {
         if (CanShowHoverUI())
         {
-            Vector3 newPos = transform.position + new Vector3(0f, 3.2f, 0f);
+            Vector3 newPos;
+            var cardData = GetComponent<CardData>();
+            if (cardData != null && cardData.cardType == CardData.CardType.Buff)
+            {
+                Debug.Log($"[CardHoverUI] 버프카드입니다: {gameObject.name} (cardId: {cardData.cardId})");
+                newPos = new Vector3(0f, 0f, -1f);
+            }
+            else
+            {
+                Debug.Log($"[CardHoverUI] 일반카드 또는 기타: {gameObject.name}");
+                newPos = transform.position + new Vector3(0f, 3.2f, 0f);
+            }
             hoverUI.transform.position = newPos;
             hoverText.text = cardInfo;
             hoverUI.SetActive(true);
         }
     }
-    
+    */
+    /*
     private void OnMouseExit()
     {
         if (hoverUI != null)
@@ -45,5 +57,5 @@ public class CardHoverUI : MonoBehaviour
                gameMaster.IsDrawState() &&
                !cardState.isClick;
     }
-
+    */
 }

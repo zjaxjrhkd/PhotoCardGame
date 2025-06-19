@@ -182,6 +182,7 @@ MonoBehaviour:
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
   cardInfo: "Set\uC2DC Coin+1  / Vlup"
+  visualTransform: {fileID: 274520207707344196}
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -200,6 +201,7 @@ MonoBehaviour:
   buffType: 0
   playType: 1
   characterType: 1
+  gameMaster: {fileID: 0}
 --- !u!114 &8378667447570325409
 MonoBehaviour:
   m_ObjectHideFlags: 0

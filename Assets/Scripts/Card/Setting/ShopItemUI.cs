@@ -5,49 +5,17 @@ public class ShopItemUI : MonoBehaviour
 {
     public Button buyButton;
 
-    private GameObject cardPrefab;
+    private int cardId;
     private int price;
     private GameMaster gameMaster;
+    private BuffCardListSO buffCardListSO;
 
-    public void Setup(GameObject cardPrefab, int price, GameMaster gameMaster)
+    public void Setup(int cardId, int price, GameMaster gameMaster, BuffCardListSO buffCardListSO)
     {
-        this.cardPrefab = cardPrefab;
+        this.cardId = cardId;
         this.price = price;
         this.gameMaster = gameMaster;
-
-        buyButton.onClick.RemoveAllListeners();
-        buyButton.onClick.AddListener(BuyThisCard);
+        this.buffCardListSO = buffCardListSO;
     }
 
-    private void BuyThisCard()
-    {
-        // 코인 접근을 Coin 프로퍼티로 변경
-        if (gameMaster.Coin < price)
-        {
-            Debug.Log("코인이 부족합니다.");
-            return;
-        }
-
-        gameMaster.SpendCoin(price);
-
-        CardData data = cardPrefab.GetComponent<CardData>();
-        if (data == null)
-        {
-            Debug.LogWarning("CardData가 없음");
-            return;
-        }
-
-        if (data.cardType == CardData.CardType.Buff)
-        {
-            gameMaster.buffCardList.Add(cardPrefab);
-            Debug.Log($"{data.cardName} 버프 카드 구매 완료");
-        }
-        else
-        {
-            gameMaster.deckList.Add(data.cardId);
-            Debug.Log($"{data.cardName} 일반 카드 구매 완료");
-        }
-
-        gameObject.SetActive(false); // UI에서 비활성화 (구매 완료 표시)
-    }
 }

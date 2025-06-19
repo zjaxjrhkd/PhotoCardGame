@@ -181,7 +181,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uC190\uC5D0 \uB4E4\uACE0 \uC788\uC73C\uBA74 Score+10 / Cheer"
+  cardInfo: "\uC190\uC5D0 \uB4E4\uACE0 \uC788\uC73C\uBA74 Stage * 10 / Cheer"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -200,6 +200,7 @@ MonoBehaviour:
   buffType: 0
   playType: 0
   characterType: 3
+  gameMaster: {fileID: 0}
 --- !u!114 &5559982677604249676
 MonoBehaviour:
   m_ObjectHideFlags: 0

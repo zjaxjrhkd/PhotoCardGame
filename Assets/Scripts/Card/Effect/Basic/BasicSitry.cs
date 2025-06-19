@@ -18,9 +18,11 @@ public class BasicSitry : MonoBehaviour, ICardEffect
     public void Effect()
     {
         Debug.Log("시트리 효과 발동!");
-        if (scoreManager != null)
+        if (scoreManager != null && gameMaster != null && gameMaster.stageManager != null)
         {
-            scoreManager.scoreYet += 10;
+            int stageIndex = gameMaster.stageManager.GetCurrentStageIndex();
+            scoreManager.scoreYet += stageIndex * 10;
+            Debug.Log($"시트리 효과: 현재 스테이지 인덱스({stageIndex}) x 10 = {stageIndex * 10} 점 추가!");
         }
     }
 }

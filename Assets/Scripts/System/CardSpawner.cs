@@ -4,6 +4,7 @@ using UnityEngine;
 public class CardSpawner : MonoBehaviour
 {
     public CardListSO cardListSO; // 카드 프리팹 목록 SO 연결
+    public BuffCardListSO buffCardListSO;
     public GameObject deckPrefab;
 
     public Vector3 deckSpawnPosition;
@@ -86,4 +87,50 @@ public class CardSpawner : MonoBehaviour
         return null;
     }
 
+    public List<GameObject> SpawnBuffCardsByIndex(List<int> buffCardIndices)
+    {
+        Debug.Log($"버프카드 생성 요청(인덱스): {buffCardIndices.Count}개");
+        List<GameObject> result = new List<GameObject>();
+
+        foreach (int idx in buffCardIndices)
+        {
+            GameObject prefab = FindBuffCardPrefabByIndex(idx);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"인덱스 {idx}에 해당하는 버프카드 프리팹을 찾을 수 없습니다.");
+                continue;
+            }
+
+            Vector3 spawnPosition = new Vector3(1f, 1f, 1f); // 고정 위치
+
+            GameObject newCard = Instantiate(prefab, spawnPosition, Quaternion.identity);
+
+            // Hover UI 주입
+            CardState state = newCard.GetComponentInChildren<CardState>();
+            if (state != null)
+            {
+                state.hoverUI = hoverUI;
+                state.hoverText = hoverText;
+            }
+
+            result.Add(newCard);
+        }
+
+        return result;
+    }
+
+    private GameObject FindBuffCardPrefabByIndex(int idx)
+    {
+        if (buffCardListSO == null || buffCardListSO.buffCards == null)
+        {
+            Debug.LogWarning("BuffCardListSO 또는 buffCards 리스트가 null입니다.");
+            return null;
+        }
+        if (idx < 0 || idx >= buffCardListSO.buffCards.Count)
+        {
+            Debug.LogWarning($"BuffCardListSO.buffCards에 인덱스 {idx}가 없습니다.");
+            return null;
+        }
+        return buffCardListSO.buffCards[idx];
+    }
 }
