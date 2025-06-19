@@ -77,6 +77,18 @@ public class CardManager : MonoBehaviour
 
     public void OnClickSortDrawnCardsByCharacterType()
     {
+        // Idle 상태가 아닐 때는 동작하지 않음
+        if (gameMaster == null)
+            gameMaster = FindObjectOfType<GameMaster>();
+
+        var setProcessStateField = typeof(GameMaster).GetField("setProcessState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (setProcessStateField != null)
+        {
+            var setProcessStateValue = setProcessStateField.GetValue(gameMaster);
+            if (setProcessStateValue == null || setProcessStateValue.ToString() != "Idle")
+                return;
+        }
+
         // SFX 재생
         if (gameMaster != null && gameMaster.musicManager != null)
             gameMaster.musicManager.PlayUIClickSFX();
@@ -137,6 +149,18 @@ public class CardManager : MonoBehaviour
 
     public void OnClickSortDrawnCards()
     {
+        // Idle 상태가 아닐 때는 동작하지 않음
+        if (gameMaster == null)
+            gameMaster = FindObjectOfType<GameMaster>();
+
+        var setProcessStateField = typeof(GameMaster).GetField("setProcessState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (setProcessStateField != null)
+        {
+            var setProcessStateValue = setProcessStateField.GetValue(gameMaster);
+            if (setProcessStateValue == null || setProcessStateValue.ToString() != "Idle")
+                return;
+        }
+
         // SFX 재생
         if (gameMaster != null && gameMaster.musicManager != null)
             gameMaster.musicManager.PlayUIClickSFX();

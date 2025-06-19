@@ -27,10 +27,10 @@ public class BuffYasu : MonoBehaviour, ICardEffect
 
     private IEnumerator EffectCoroutine()
     {
-        Debug.Log("야수 효과 발동!");
+        Debug.Log("야수+ 효과 발동!");
 
+        // 적용 대상 카드 ID 목록
         int[] targetIds = { 2, 9, 16, 23, 30, 37, 44, 51 };
-
         foreach (var card in new List<GameObject>(cardManager.checkCardList))
         {
             if (card == null) continue;
@@ -55,6 +55,7 @@ public class BuffYasu : MonoBehaviour, ICardEffect
 
                 if (gameMaster != null && gameMaster.musicManager != null)
                     gameMaster.musicManager.PlayCardEffectSFX();
+
                 yield return new WaitForSeconds(0.5f);
             }
         }
