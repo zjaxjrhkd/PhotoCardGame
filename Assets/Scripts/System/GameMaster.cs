@@ -188,7 +188,6 @@ public class GameMaster : MonoBehaviour
                 scoreManager.CalculateResultScore();
                 AllUIUpdate();
                 scoreManager.SetCalculateResutScore();
-
                 if (cardManager.selectCardList != null)
                 {
                     foreach (var card in cardManager.selectCardList)
@@ -296,8 +295,6 @@ public class GameMaster : MonoBehaviour
     public void OnExitButtonPressed()
     {
         musicManager.PlayUIClickSFX();
-        gameState = prevGameState; // 옵션 진입 전 상태로 복귀
-        setProcessState = prevSetProcessState; // 옵션 진입 전 processState로 복귀
         if (optionUI != null)
             optionUI.SetActive(false);
     }

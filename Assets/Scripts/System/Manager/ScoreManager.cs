@@ -326,6 +326,8 @@ public class ScoreManager : MonoBehaviour
         resultScore = Mathf.RoundToInt(scoreYet * rate);
         Debug.Log($"[ScoreManager] scoreYet: {scoreYet}, rate: {rate}, resultScore: {resultScore}");
         score += resultScore;
+        if (uiManager != null)
+            uiManager.UpdateScoreCalUI(rate, scoreYet, resultScore);
         return resultScore;
     }
 

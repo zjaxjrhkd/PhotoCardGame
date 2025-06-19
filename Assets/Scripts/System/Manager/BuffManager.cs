@@ -166,6 +166,7 @@ public void ApplyStartBuffs()
                 foreach (var effect in card.GetComponents<CardData>())
                 {
                     effect.UseEffect();
+                    scoreManager.uiManager.UpdateScoreCalUI(scoreManager.rate, scoreManager.scoreYet, scoreManager.resultScore);
                 }
             }
         }
