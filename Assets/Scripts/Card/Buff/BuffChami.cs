@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening; // DOTween 네임스페이스 추가
+
 
 public class BuffChami : MonoBehaviour, ICardEffect
 {
@@ -19,25 +21,42 @@ public class BuffChami : MonoBehaviour, ICardEffect
 
     public void Effect()
     {
+        // 코루틴으로 실행
+        gameMaster.StartCoroutine(EffectCoroutine());
+    }
+
+    private IEnumerator EffectCoroutine()
+    {
         Debug.Log("차미 효과 발동!");
 
-        if (scoreManager != null && cardManager != null)
-        {
-            // 적용 대상 카드 ID 목록
-            int[] targetIds = { 4, 11, 18, 25, 32, 39, 46, 53 };
-            int addCount = 0;
+        int[] targetIds = { 4, 11, 18, 25, 32, 39, 46, 53 };
 
-            foreach (var card in cardManager.checkCardList)
+        foreach (var card in new List<GameObject>(cardManager.checkCardList))
+        {
+            if (card == null) continue;
+            CardData data = card.GetComponent<CardData>();
+            if (data != null && System.Array.Exists(targetIds, id => id == data.cardId))
             {
-                if (card == null) continue;
-                CardData data = card.GetComponent<CardData>();
-                if (data != null && System.Array.Exists(targetIds, id => id == data.cardId))
+                int stageIndex = gameMaster.stageManager.GetCurrentStageIndex();
+                scoreManager.scoreYet += stageIndex * 10;
+                Debug.Log($"현재 스테이지 인덱스({stageIndex}) x 10 = {stageIndex * 10} 점 추가!");
+                // 카드 흔들림 애니메이션 (Y축으로 0.5만큼 3회)
+                Transform tr = this.transform;
+                float duration = 0.12f;
+                int loopCount = 2;
+                Vector3 origin = tr.position;
+                Sequence seq = DG.Tweening.DOTween.Sequence();
+                for (int i = 0; i < loopCount; i++)
                 {
-                    scoreManager.scoreYet += 10;
-                    addCount++;
+                    seq.Append(tr.DOMoveY(origin.y + 0.5f, duration).SetEase(Ease.OutQuad));
+                    seq.Append(tr.DOMoveY(origin.y, duration).SetEase(Ease.InQuad));
                 }
+                seq.Play();
+
+                if (gameMaster != null && gameMaster.musicManager != null)
+                    gameMaster.musicManager.PlayCardEffectSFX();
+                yield return new WaitForSeconds(0.5f);
             }
-            Debug.Log($"BuffChuros: {addCount}장에 대해 scoreYet +10 적용 (총 +{addCount * 10})");
         }
     }
 }

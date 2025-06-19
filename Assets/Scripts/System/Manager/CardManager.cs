@@ -77,6 +77,10 @@ public class CardManager : MonoBehaviour
 
     public void OnClickSortDrawnCardsByCharacterType()
     {
+        // SFX 재생
+        if (gameMaster != null && gameMaster.musicManager != null)
+            gameMaster.musicManager.PlayUIClickSFX();
+
         // checkCardList에 있는 모든 카드 선택 해제 및 원래 자리로 이동
         foreach (var card in new List<GameObject>(checkCardList))
         {
@@ -132,6 +136,10 @@ public class CardManager : MonoBehaviour
 
     public void OnClickSortDrawnCards()
     {
+        // SFX 재생
+        if (gameMaster != null && gameMaster.musicManager != null)
+            gameMaster.musicManager.PlayUIClickSFX();
+
         // checkCardList에 있는 모든 카드 선택 해제 및 원래 자리로 이동
         foreach (var card in new List<GameObject>(checkCardList))
         {
@@ -173,19 +181,24 @@ public class CardManager : MonoBehaviour
 
     public void DrawCards(int count)
     {
+        if (gameMaster != null && gameMaster.musicManager != null)
+            gameMaster.musicManager.PlayFlipCardSFX();
+
         drawCardList.Clear();
         int drawCount = Mathf.Min(count, deckList.Count);
         if (drawCount == 0) return;
 
         for (int i = 0; i < drawCount; i++)
         {
-            int cardId = deckList[0];
+             int cardId = deckList[0];
             deckList.RemoveAt(0);
 
             // Noi 스테이지: 1/4 확률로 59번 카드로 변경
             if (isNoiStage && Random.value < 0.25f)
             {
                 cardId = 59;
+                if (gameMaster != null && gameMaster.musicManager != null)
+                    gameMaster.musicManager.PlayFlipCardSFX();
             }
 
             drawCardList.Add(cardId);
@@ -218,6 +231,9 @@ public class CardManager : MonoBehaviour
             {
                 foreach (var cardObj in spawnedCards)
                 {
+                    if (gameMaster != null && gameMaster.musicManager != null)
+                        gameMaster.musicManager.PlayFlipCardSFX();
+
                     if (cardObj == null) continue;
                     if (Random.value < 0.5f)
                     {
@@ -251,6 +267,8 @@ public class CardManager : MonoBehaviour
                 ui.UpdateDeckCountUI(deckList.Count, totalDeckCount);
         }
     }
+
+
     private void HandleCardHover()
     {
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -262,17 +280,14 @@ public class CardManager : MonoBehaviour
 
             if (state != null)
             {
-                if (!state.isClick && gameMaster != null && IsInPlayCardList(state.gameObject))
+                if (lastHoveredCard != null && lastHoveredCard != state)
                 {
-                    if (lastHoveredCard != null && lastHoveredCard != state)
-                    {
-                        lastHoveredCard.HideHoverUI();
-                    }
-
-                    state.ShowHoverUI();
-                    lastHoveredCard = state;
-                    return;
+                    lastHoveredCard.HideHoverUI();
                 }
+
+                state.ShowHoverUI();
+                lastHoveredCard = state;
+                return;
             }
         }
 
@@ -292,6 +307,9 @@ public class CardManager : MonoBehaviour
     /// </summary>
     public void OnClickCreateDeckListObjects()
     {
+        if (gameMaster != null && gameMaster.musicManager != null)
+            gameMaster.musicManager.PlayUIClickSFX();
+
         if (deckListParent == null || cardSpawner == null || deckList == null || deckList.Count == 0)
             return;
 
@@ -507,6 +525,19 @@ public class CardManager : MonoBehaviour
 
     public void ClickCard()
     {
+        // setProcessState가 Idle일 때만 동작
+        if (gameMaster == null)
+            gameMaster = FindObjectOfType<GameMaster>();
+
+        // GameMaster.SetProcessState enum이 public이 아니므로 string 비교 사용
+        var setProcessStateField = typeof(GameMaster).GetField("setProcessState", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (setProcessStateField != null)
+        {
+            var setProcessStateValue = setProcessStateField.GetValue(gameMaster);
+            if (setProcessStateValue == null || setProcessStateValue.ToString() != "Idle")
+                return;
+        }
+
         if (!Input.GetMouseButtonDown(0)) return;
 
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -516,6 +547,13 @@ public class CardManager : MonoBehaviour
         {
             CardState cardStateRead = hit.collider.GetComponent<CardState>();
             CardData cardDataRead = hit.collider.GetComponent<CardData>();
+
+            // Buff 카드는 무시
+            if (cardDataRead != null && cardDataRead.cardType == CardData.CardType.Buff)
+            {
+                Debug.Log($"[CardManager] 버프카드 클릭 무시됨: {cardDataRead.cardName}");
+                return;
+            }
 
             if (cardStateRead != null)
             {
@@ -527,6 +565,9 @@ public class CardManager : MonoBehaviour
 
     public void AddCheckCardList(CardState cardStateRead, CardData cardDataRead)
     {
+        if (gameMaster != null && gameMaster.musicManager != null)
+            gameMaster.musicManager.PlayCardSelectSFX();
+
         // 해제(클릭 해제)는 항상 허용해야 하므로, 선택(추가)일 때만 7개 제한
         if (cardStateRead == null || cardDataRead == null) return;
 
@@ -540,6 +581,18 @@ public class CardManager : MonoBehaviour
 
             if (!checkCardList.Contains(card))
                 checkCardList.Add(card);
+
+            // playCardList에서 제거 (중복 제거 방지)
+            bool removed = false;
+            if (playCardList.Contains(parentCard))
+            {
+                playCardList.Remove(parentCard);
+                removed = true;
+            }
+
+            // 카드가 playCardList에서 제거된 경우, 남은 카드들 위치 재배치(DOTween)
+            if (removed)
+                ArrangeCardsWithinRange(true);
 
             if (!selectCardList.Contains(parentCard))
             {
@@ -575,6 +628,7 @@ public class CardManager : MonoBehaviour
         {
             foreach (var combo in combos)
             {
+
                 Debug.Log($"[CardManager] 콜렉터 조합 완성: {combo.collectorName} (소유: {combo.ownedCount}장, 점수: {combo.score})");
             }
         }
@@ -596,6 +650,9 @@ public class CardManager : MonoBehaviour
 
     public void RemoveCheckCardList(CardState cardStateRead, CardData cardDataRead)
     {
+        if (gameMaster != null && gameMaster.musicManager != null)
+            gameMaster.musicManager.PlayCardRemoveSFX();
+
         if (cardStateRead == null || cardDataRead == null) return;
 
         GameObject card = cardDataRead.gameObject;
@@ -604,22 +661,18 @@ public class CardManager : MonoBehaviour
         if (checkCardList.Contains(card))
             checkCardList.Remove(card);
 
+        // playCardList에 다시 추가 (중복 방지)
+        if (!playCardList.Contains(parentCard))
+            playCardList.Add(parentCard);
+
         int idx = selectCardList.IndexOf(parentCard);
         if (idx != -1)
         {
             selectCardList[idx] = null;
-
-            int playIdx = playCardList.IndexOf(parentCard);
-            if (playIdx >= 0)
-            {
-                float spacing = (playCardList.Count > 1) ? (maxX - minX) / (playCardList.Count - 1) : 0f;
-                float x = (playCardList.Count == 1) ? (minX + maxX) / 2f : minX + spacing * playIdx;
-                float z = baseZ + zStep * playIdx;
-                Vector3 targetPos = new Vector3(x, y, z);
-                // DOTween으로 원래 자리로 이동
-                parentCard.transform.DOMove(targetPos, 0.3f).SetEase(Ease.OutCubic);
-            }
         }
+
+        // playCardList 전체 위치 재배치 (DOTween 적용)
+        ArrangeCardsWithinRange(true);
 
         // checkCardList 정보 출력
         List<string> cardInfoList = new List<string>();
@@ -648,6 +701,28 @@ public class CardManager : MonoBehaviour
 
         if (gameMaster != null && gameMaster.uiManager != null)
             gameMaster.uiManager.UpdateCollectorResultUI(combos);
+    }
+
+    // DOTween 애니메이션 적용 버전
+    public void ArrangeCardsWithinRange(bool useTween = false)
+    {
+        if (playCardList == null || playCardList.Count == 0) return;
+        List<GameObject> activeCards = playCardList.FindAll(card => card != null && card.activeSelf);
+        int count = activeCards.Count;
+        if (count == 0) return;
+
+        float spacing = count > 1 ? (maxX - minX) / (count - 1) : 0f;
+
+        for (int i = 0; i < count; i++)
+        {
+            float x = minX + spacing * i;
+            float z = baseZ + zStep * i;
+            Vector3 targetPos = new Vector3(x, y, z);
+            if (useTween)
+                activeCards[i].transform.DOMove(targetPos, 0.3f).SetEase(Ease.OutCubic);
+            else
+                activeCards[i].transform.position = targetPos;
+        }
     }
 
     public void DropAndDrawSelectedCards()
@@ -705,7 +780,7 @@ public class CardManager : MonoBehaviour
     {
         if (index < 0 || index >= selectCardXPositions.Length)
             return Vector3.zero;
-        return new Vector3(selectCardXPositions[index], selectCardY, selectCardZ);
+        return new Vector3(selectCardXPositions[index], selectCardY-1, selectCardZ);
     }
 
     /// <summary>

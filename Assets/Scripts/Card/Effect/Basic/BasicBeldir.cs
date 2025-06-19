@@ -20,7 +20,9 @@ public class BasicBeldir : MonoBehaviour, ICardEffect
         Debug.Log("BasicBeldir 효과 발동!");
         if (gameMaster != null)
         {
-            gameMaster.coin ++; // 코인 증가
+            if (gameMaster != null && gameMaster.musicManager != null)
+                gameMaster.musicManager.PlayGetCoinSFX();
+            gameMaster.coin++; // 코인 증가
         }
     }
 }

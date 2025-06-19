@@ -155,7 +155,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1875242233}
-  - {fileID: 1201178580}
   m_Father: {fileID: 1126549020}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -360,7 +359,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 400, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &143023902
 MonoBehaviour:
@@ -445,7 +444,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: -85.87555, z: 0, w: -88.35278}
+  m_margin: {x: 8.451721, y: 8.151855, z: 7.328064, w: 11.638824}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1109,6 +1108,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardListSO: {fileID: 11400000, guid: 4418b2db5dc16834190e6de0db2b1d52, type: 2}
+  buffCardListSO: {fileID: 11400000, guid: 48d8dc3cb450b9a41949637a3a1ddeba, type: 2}
   deckPrefab: {fileID: 8949536555947873314, guid: a6b24ff4a1a46074c9cbc46fe6590a9e, type: 3}
   deckSpawnPosition: {x: 0, y: 0, z: 0}
   minX: -5
@@ -1129,12 +1129,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64f6ef38ac2a9f049b190765a928f8dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cardManager: {fileID: 0}
+  buffManager: {fileID: 0}
+  scoreManager: {fileID: 0}
+  stageManager: {fileID: 0}
   uiManager: {fileID: 0}
+  shopManager: {fileID: 0}
   cardSpawner: {fileID: 0}
   musicManager: {fileID: 0}
   optionUI: {fileID: 1346428327}
   maxSetCount: 3
-  maxDropCount: 99
+  maxDropCount: 3
   coin: 0
   winCoin: 5
 --- !u!4 &346199883
@@ -1184,12 +1189,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buffCardListSO: {fileID: 11400000, guid: 48d8dc3cb450b9a41949637a3a1ddeba, type: 2}
   shopPanel: {fileID: 10706069}
-  cardSpawnRoot: {fileID: 1201178579}
   gameMaster: {fileID: 0}
-  minX: -3
-  maxX: 5
-  y: 0
-  z: 0
+  cardSpawner: {fileID: 0}
   buffCardPrice: 3
 --- !u!114 &346199889
 MonoBehaviour:
@@ -1235,6 +1236,7 @@ MonoBehaviour:
   resultScore: 0
   rate: 1
   uiManager: {fileID: 0}
+  gameMaster: {fileID: 0}
   isBeldirStage: 0
   isSitryStage: 0
 --- !u!114 &346199892
@@ -1296,6 +1298,7 @@ MonoBehaviour:
   gameMaster: {fileID: 0}
   scoreManager: {fileID: 0}
   cardManager: {fileID: 0}
+  cardSpawner: {fileID: 0}
 --- !u!114 &346199894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1309,6 +1312,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioSource: {fileID: 0}
+  sfxSource: {fileID: 0}
   jooinMusic: {fileID: 8300000, guid: 266286a03e8b706458ca06d28b41f5a3, type: 3}
   sitryMusic: {fileID: 8300000, guid: ee096d03ee9bb054c8c6840c2e18e3e5, type: 3}
   limiMusic: {fileID: 8300000, guid: 9bddc726fa286f944977e6ae707cb86c, type: 3}
@@ -1316,6 +1320,15 @@ MonoBehaviour:
   razMusic: {fileID: 8300000, guid: d47c6508419d5b14b87f60cb91450e7f, type: 3}
   noiMusic: {fileID: 8300000, guid: 5d16a9ce61dfbff4894d15285695c0bb, type: 3}
   beldirMusic: {fileID: 8300000, guid: 4af1db81281ad474fb05033ff1472c3d, type: 3}
+  sfxCardSelect: {fileID: 8300000, guid: 8cf90008e2db5e74184c56be81fb064b, type: 3}
+  sfxCardRemove: {fileID: 8300000, guid: f7c13e9e8b0db7e42a59a3c55ed01fe3, type: 3}
+  sfxBuyBuff: {fileID: 8300000, guid: 0673d5c97aa5d86429f9b4e4e64bc6d1, type: 3}
+  sfxComboComplete: {fileID: 8300000, guid: fb47a37363034f14a8fad379712b7a4e, type: 3}
+  sfxDropCard: {fileID: 8300000, guid: 5ca14c9caac1a0b4685a48f0f4486deb, type: 3}
+  sfxFlipCard: {fileID: 8300000, guid: c7ad223e0e53fde40806b9e3e0e14a4d, type: 3}
+  sfxGetCoin: {fileID: 8300000, guid: 8a5521a9bdf0ead438b4d0c3f55a405e, type: 3}
+  sfxUIClick: {fileID: 8300000, guid: a4311563015b90b44afe216089ec4cc0, type: 3}
+  sfxCardEffect: {fileID: 8300000, guid: fae105e8169aacd4294c1ff3a43889c6, type: 3}
   volumeSlider: {fileID: 1991873142}
 --- !u!81 &346199895
 AudioListener:
@@ -1337,7 +1350,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 0.3
+  m_Volume: 0.1
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -3851,41 +3864,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1184558887}
   m_CullTransparentMesh: 1
---- !u!1 &1201178579
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1201178580}
-  m_Layer: 5
-  m_Name: CardPosition
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1201178580
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1201178579}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 10706070}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1205396555
 GameObject:
   m_ObjectHideFlags: 0
@@ -4158,8 +4136,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1100, y: 0}
-  m_SizeDelta: {x: 250, y: 250}
+  m_AnchoredPosition: {x: -1300, y: 0}
+  m_SizeDelta: {x: 400, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1219723813
 MonoBehaviour:
@@ -4823,20 +4801,25 @@ MonoBehaviour:
   info: base
   comboName: 
   comboInfos: []
-  jooinInfo: "jooin\t"
-  beldirInfo: bel
-  ianaInfo: iana
-  sitryInfo: si
-  noiInfo: no
-  limiInfo: li
-  razInfo: ra
-  churosInfo: chu
-  chamiInfo: cha
-  donddatgeInfo: dondd
-  muddungInfo: mudd
-  raskyInfo: rasky
-  rozeInfo: roze
-  yasuInfo: yasu
+  jooinInfo: "\uBAA9\uD45C\uC810\uC218 * 10\t"
+  beldirInfo: "set\uD55C \uCE74\uB4DC 1\uAC1C\uB2F9 -1 coin"
+  ianaInfo: "84\uC7A5\uC774 \uB418\uB3C4\uB85D \uBB34\uB4DC\uB4F1\uC744 \uCD94\uAC00"
+  sitryInfo: "Buff \uD6A8\uACFC \uBB34\uD6A8"
+  noiInfo: "1/4 \uD655\uB960\uB85C \uCE74\uB4DC\uB97C \uB85C\uC81C\uB85C \uB9CC\uB4EC"
+  limiInfo: "Drop\uC744 \uD558\uBA74 1/2 \uD655\uB960\uB85C \uCE74\uB4DC\uB97C \uD6D4\uCCD0\uAC10"
+  razInfo: "1/2 \uD655\uB960\uB85C \uCE74\uB4DC\uB97C \uB4A4\uC9D1\uC74C"
+  churosInfo: "\uB2E4\uC74C \uC2A4\uD14C\uC774\uC9C0 \uBAA9\uD45C\uC810\uC218 * 10\t"
+  chamiInfo: "\uB2E4\uC74C \uC2A4\uD14C\uC774\uC9C0 Buff \uD6A8\uACFC \uBB34\uD6A8"
+  donddatgeInfo: "\uB2E4\uC74C \uC2A4\uD14C\uC774\uC9C0 Drop\uC744 \uD558\uBA74 1/2
+    \uD655\uB960\uB85C \uCE74\uB4DC\uB97C \uD6D4\uCCD0\uAC10"
+  muddungInfo: "\uB2E4\uC74C \uC2A4\uD14C\uC774\uC9C0 84\uC7A5\uC774 \uB418\uB3C4\uB85D
+    \uBB34\uB4DC\uB4F1\uC744 \uCD94\uAC00"
+  raskyInfo: "\uB2E4\uC74C \uC2A4\uD14C\uC774\uC9C0 1/2 \uD655\uB960\uB85C \uCE74\uB4DC\uB97C
+    \uB4A4\uC9D1\uC74C"
+  rozeInfo: "\uB2E4\uC74C \uC2A4\uD14C\uC774\uC9C0 1/4 \uD655\uB960\uB85C \uCE74\uB4DC\uB97C
+    \uB85C\uC81C\uB85C \uB9CC\uB4EC"
+  yasuInfo: "\uB2E4\uC74C \uC2A4\uD14C\uC774\uC9C0 set\uD55C \uCE74\uB4DC 1\uAC1C\uB2F9
+    -1 coin"
 --- !u!1 &1467618201
 GameObject:
   m_ObjectHideFlags: 0

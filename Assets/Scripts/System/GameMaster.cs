@@ -12,12 +12,12 @@ public class GameMaster : MonoBehaviour
     private SetProcessState setProcessState;
     private SetProcessState prevSetProcessState;
 
-    private CardManager cardManager;
-    private BuffManager buffManager;
-    private ScoreManager scoreManager;
-    private StageManager stageManager;
+    public CardManager cardManager;
+    public BuffManager buffManager;
+    public ScoreManager scoreManager;
+    public StageManager stageManager;
     public UIManager uiManager;
-    private ShopManager shopManager;
+    public ShopManager shopManager;
     public CardSpawner cardSpawner;
     public MusicManager musicManager; // 음악 매니저 추가
 
@@ -54,6 +54,7 @@ public class GameMaster : MonoBehaviour
         buffManager.scoreManager = scoreManager;
         buffManager.cardManager = cardManager;
         musicManager = GetComponent<MusicManager>();
+        cardSpawner = GetComponent<CardSpawner>();
     }
 
     void Start()
@@ -98,6 +99,7 @@ public class GameMaster : MonoBehaviour
     {
         uiManager.UpdateBackgroundUI();
         musicManager.Init(); // 음악 매니저 초기화s
+        scoreManager.Init(this); // 점수 매니저 초기화
         uiManager.HideCollectorComboImages();
 
         maxSetCount = 3;
@@ -132,6 +134,9 @@ public class GameMaster : MonoBehaviour
         isFirstDraw = true;
         gameState = GameState.Draw;
         setProcessState = SetProcessState.Idle;
+        shopManager.gameMaster = this;
+        shopManager.cardSpawner = cardSpawner;
+        buffManager.cardSpawner = cardSpawner;
     }
 
     public void AllUIUpdate()
@@ -224,7 +229,6 @@ public class GameMaster : MonoBehaviour
                 {
                     gameState = GameState.Draw;
                 }
-
                 setProcessState = SetProcessState.Idle;
                 break;
         }
@@ -232,7 +236,8 @@ public class GameMaster : MonoBehaviour
 
     private IEnumerator HandCardEffectCoroutine()
     {
-        yield return StartCoroutine(scoreManager.ApplyHandTypeCardEffects(cardManager.playCardList));
+        // 기존: yield return StartCoroutine(scoreManager.ApplyHandTypeCardEffects(playCardList));
+        yield return StartCoroutine(scoreManager.ApplyHandTypeCardEffects(cardManager.playCardList, cardManager.checkCardList));
         AllUIUpdate();
         setProcessState = SetProcessState.CardEffect;
     }
@@ -246,6 +251,7 @@ public class GameMaster : MonoBehaviour
         // 벨디르 스테이지면 카드 개수만큼 코인 감소
         if (scoreManager.isBeldirStage)
         {
+            musicManager.PlayBuyBuffSFX();
             coin -= cardCount;
             if (uiManager != null)
                 uiManager.UpdateCoinUI(coin);
@@ -273,6 +279,10 @@ public class GameMaster : MonoBehaviour
 
     public void OnOptionButtonPressed()
     {
+        // SFX 재생
+        musicManager.PlayUIClickSFX();
+
+
         prevGameState = gameState; // 옵션 진입 전 상태 저장
         prevSetProcessState = setProcessState; // 옵션 진입 전 processState 저장
         gameState = GameState.Option;
@@ -285,6 +295,7 @@ public class GameMaster : MonoBehaviour
 
     public void OnExitButtonPressed()
     {
+        musicManager.PlayUIClickSFX();
         gameState = prevGameState; // 옵션 진입 전 상태로 복귀
         setProcessState = prevSetProcessState; // 옵션 진입 전 processState로 복귀
         if (optionUI != null)
@@ -294,6 +305,7 @@ public class GameMaster : MonoBehaviour
 
     public void OnRestartButtonPressed()
     {
+        musicManager.PlayUIClickSFX();
         // 옵션 UI가 열려 있으면 닫기
         if (optionUI != null)
             optionUI.SetActive(false);
@@ -304,6 +316,7 @@ public class GameMaster : MonoBehaviour
 
     public void OnSetButtonPressed()
     {
+        musicManager.PlayUIClickSFX();
         if (setProcessState == SetProcessState.Idle)
         {
             if (currentSetCount <= 0)
@@ -330,6 +343,10 @@ public class GameMaster : MonoBehaviour
 
     public void OnDropButtonPressed()
     {
+        // SFX 재생
+        musicManager.PlayDropCardSFX();
+
+
         if (setProcessState == SetProcessState.Idle)
         {
             if (currentDropCount <= 0)

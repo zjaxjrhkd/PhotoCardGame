@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class StageManager : MonoBehaviour
 {
-    private Dictionary<string, int> stageScoreTable = new Dictionary<string, int>()
+    public Dictionary<string, int> stageScoreTable = new Dictionary<string, int>()
     {
         {"1-1", 300}, {"1-2", 500}, {"2-1", 800}, {"2-2", 1000},
         {"3-1", 1500}, {"3-2", 2000}, {"4-1", 3000}, {"4-2", 3500},

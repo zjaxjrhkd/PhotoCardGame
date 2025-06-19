@@ -21,6 +21,11 @@ public class UIManager : MonoBehaviour
     public Sprite defaultStageBackground; // 기본 배경 Sprite
     public GameObject backGround;
 
+    private string[] prevComboKeys = new string[4]; // 각 슬롯별 이전 콤보 키 저장
+
+
+
+
 
     public void UpdateScoreUI(int score, int targetScore)
     {
@@ -108,26 +113,32 @@ public class UIManager : MonoBehaviour
 
     public void UpdateCollectorResultUI(List<CollectorComboResult> combos)
     {
-        // 모든 이미지 비활성화
-        foreach (var img in collectorResultImages)
-            if (img != null) img.enabled = false;
+        // 1. 모든 이미지 비활성화
+        for (int i = 0; i < collectorResultImages.Length; i++)
+        {
+            if (collectorResultImages[i] != null)
+                collectorResultImages[i].enabled = false;
+        }
+
+        // 2. 콤보가 없으면 prevComboKeys를 null로 초기화하고 종료 (SFX 재생 X)
         if (combos == null || combos.Count == 0)
+        {
+            for (int i = 0; i < prevComboKeys.Length; i++)
+                prevComboKeys[i] = null;
             return;
+        }
 
         HashSet<string> setNames = new HashSet<string>
     {
-        "Vlup", "CheerUp!", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
+        "Vlup", "CheerUp!", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea", "SpringInnovill"
     };
 
         int normalIdx = 0;
+        string[] newComboKeys = new string[prevComboKeys.Length];
+
+        // 3. 콤보별로 imageIdx에 맞는 콤보 키를 newComboKeys에 저장
         foreach (var c in combos)
         {
-            string resourceFolder = GetResourceFolder(c.collectorName);
-            string imagePrefix = GetImagePrefix(c.collectorName);
-            string imageName = $"{imagePrefix}_{c.ownedCount}";
-            string resourcePath = $"{resourceFolder}/{imageName}";
-            Sprite resultSprite = Resources.Load<Sprite>(resourcePath);
-
             int imageIdx;
             if (setNames.Contains(c.collectorName))
             {
@@ -143,20 +154,59 @@ public class UIManager : MonoBehaviour
 
             if (imageIdx < collectorResultImages.Length && collectorResultImages[imageIdx] != null)
             {
+                string comboKey = $"{c.collectorName}_{c.ownedCount}";
+                newComboKeys[imageIdx] = comboKey;
+            }
+        }
+
+        // 4. imageIdx별로 prevComboKeys와 newComboKeys가 다르면 SFX
+        bool playSfx = false;
+        for (int i = 0; i < prevComboKeys.Length; i++)
+        {
+            if (prevComboKeys[i] != newComboKeys[i])
+            {
+                playSfx = true;
+                break;
+            }
+        }
+
+        // 5. 이미지 적용 및 Tooltip 처리
+        normalIdx = 0;
+        foreach (var c in combos)
+        {
+            string resourceFolder = GetResourceFolder(c.collectorName);
+            string imagePrefix = GetImagePrefix(c.collectorName);
+            string imageName = $"{imagePrefix}_{c.ownedCount}";
+            string resourcePath = $"{resourceFolder}/{imageName}";
+            Sprite resultSprite = Resources.Load<Sprite>(resourcePath);
+
+            int imageIdx;
+            if (setNames.Contains(c.collectorName))
+            {
+                imageIdx = 3;
+            }
+            else
+            {
+                imageIdx = normalIdx;
+                normalIdx++;
+                if (imageIdx == 3)
+                    continue;
+            }
+
+            if (imageIdx < collectorResultImages.Length && collectorResultImages[imageIdx] != null)
+            {
                 if (resultSprite != null)
                 {
                     collectorResultImages[imageIdx].sprite = resultSprite;
                     collectorResultImages[imageIdx].enabled = true;
 
-                    // === 콤보 이름/점수 info 할당 ===
                     var tooltip = collectorResultImages[imageIdx].GetComponent<UIHoverTooltip>();
                     if (tooltip != null)
                     {
                         tooltip.comboName = c.collectorName;
-                        tooltip.info = c.collectorName;             }
-                                                        // =============================
-
-                        Debug.Log($"[UIManager] Sprite 적용 성공: {resourcePath} (슬롯 {imageIdx})");
+                        tooltip.info = c.collectorName;
+                    }
+                    Debug.Log($"[UIManager] Sprite 적용 성공: {resourcePath} (슬롯 {imageIdx})");
                 }
                 else
                 {
@@ -164,6 +214,18 @@ public class UIManager : MonoBehaviour
                     Debug.LogWarning($"[UIManager] Sprite를 찾을 수 없음: {resourcePath} (슬롯 {imageIdx})");
                 }
             }
+        }
+
+        // 6. prevComboKeys 갱신
+        for (int i = 0; i < prevComboKeys.Length; i++)
+            prevComboKeys[i] = newComboKeys[i];
+
+        // 7. SFX 재생(콤보가 있을 때만, 다를 때만)
+        if (playSfx)
+        {
+            var gm = FindObjectOfType<GameMaster>();
+            if (gm != null && gm.musicManager != null)
+                gm.musicManager.PlayComboCompleteSFX();
         }
     }
 
@@ -205,6 +267,7 @@ public class UIManager : MonoBehaviour
             case "LoveLetter": return "LoveLetter";
             case "Mea": return "Mea";
             case "Dantalk": return "Dantalk";
+            case "SpringInnovill": return "SpringInnovill";
 
             default: return "Default";
         }

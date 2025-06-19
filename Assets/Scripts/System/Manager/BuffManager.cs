@@ -23,6 +23,8 @@ public class BuffManager : MonoBehaviour
     public ScoreManager scoreManager;
     public CardManager cardManager;
 
+    public CardSpawner cardSpawner; // 필드 선언 필요
+
     public void DetectBuffCardClick(int coin, Action<int> spendCoin)
     {
         if (!Input.GetMouseButtonDown(0)) return;
@@ -35,6 +37,13 @@ public class BuffManager : MonoBehaviour
         CardData data = hit.collider.GetComponent<CardData>();
         if (data == null || data.cardType != CardData.CardType.Buff) return;
 
+        // 이미 상단 배치된 카드인지 위치로 판단 (y == 3.19f)
+        if (Mathf.Approximately(data.transform.position.y, 3.19f))
+        {
+            Debug.Log($"이미 구매된 버프카드입니다 (y=3.19f): {data.cardName}");
+            return;
+        }
+
         if (coin < 3)
         {
             Debug.Log("코인이 부족합니다.");
@@ -43,52 +52,37 @@ public class BuffManager : MonoBehaviour
 
         spendCoin(3);
 
-        GameObject clickedCard = data.gameObject;
-
-        // 먼저 복제
-        GameObject newCard = Instantiate(clickedCard);
-        buffCardList.Add(newCard);
-
-        // 그 다음에 원본 비활성화
-        clickedCard.SetActive(false);
-
-        // Init 명시적 호출
-        foreach (var effect in newCard.GetComponents<ICardEffect>())
+        int index = data.cardId - 101;
+        if (index < 0 || index >= buffCardListSO.buffCards.Count)
         {
-            effect.Init(scoreManager, gameMaster, cardManager);
+            Debug.LogWarning($"잘못된 cardId: {data.cardId} (index: {index}, buffCardListSO count: {buffCardListSO.buffCards.Count})");
+            return;
+        }
+
+        if (cardSpawner == null)
+        {
+            Debug.LogError("BuffManager: cardSpawner가 null입니다.");
+            return;
+        }
+
+        var spawned = cardSpawner.SpawnBuffCardsByIndex(new List<int> { index });
+        if (spawned.Count == 0)
+        {
+            Debug.LogWarning("BuffManager: SpawnBuffCardsByIndex로 버프카드 생성 실패");
+            return;
+        }
+
+        GameObject newCard = spawned[0];
+        buffCardList.Add(newCard);
+        data.gameObject.SetActive(false);
+
+        CardData cardData = newCard.GetComponent<CardData>();
+        if (cardData != null)
+        {
+            cardData.InitEffects(scoreManager, gameMaster, cardManager);
         }
 
         Debug.Log($"버프 카드 구매 완료: {newCard.name}");
-        RearrangeBuffCards();
-    }
-
-    public void BuyBuffCardById(int cardId, int coin, Action<int> spendCoin)
-    {
-        if (buffCardListSO == null || cardId < 0 || cardId >= buffCardListSO.buffCards.Count)
-        {
-            Debug.LogWarning("잘못된 카드 ID");
-            return;
-        }
-
-        if (coin < 3)
-        {
-            Debug.Log("코인이 부족합니다.");
-            return;
-        }
-
-        spendCoin(3);
-
-        GameObject prefab = buffCardListSO.buffCards[cardId];
-        GameObject newCard = Instantiate(prefab);
-        buffCardList.Add(newCard);
-
-        // Init 명시적 호출
-        foreach (var effect in newCard.GetComponents<ICardEffect>())
-        {
-            effect.Init(scoreManager, gameMaster, cardManager);
-        }
-
-        Debug.Log($"버프 카드 {newCard.name} 구매 완료");
         RearrangeBuffCards();
     }
 
@@ -97,14 +91,24 @@ public class BuffManager : MonoBehaviour
         int count = buffCardList.Count;
         if (count == 0) return;
 
-        float startX = -3.5f;
-        float endX = 4f;
-        float totalWidth = endX - startX;
-
-        float spacing = (count > 1) ? totalWidth / (count - 1) : 0f;
+        float startX = -3.5f; // 좌측 끝
+        float maxX = 4f;      // 우측 최대 x값
         float y = 3.19f;
         float baseZ = -0.1f;
         float zStep = 0.1f;
+        float defaultSpacing = 2.5f;
+        float minSpacing = buffMinSpacing;
+
+        // 기본 간격으로 배치했을 때 마지막 카드의 x값 계산
+        float spacing = defaultSpacing;
+        float lastX = startX + spacing * (count - 1);
+
+        // 만약 마지막 카드가 maxX를 넘으면 spacing을 자동으로 줄임
+        if (lastX > maxX && count > 1)
+        {
+            spacing = (maxX - startX) / (count - 1);
+            if (spacing < minSpacing) spacing = minSpacing;
+        }
 
         for (int i = 0; i < count; i++)
         {
@@ -130,40 +134,38 @@ public class BuffManager : MonoBehaviour
 
         foreach (var card in buffListCopy)
         {
-            if (card == null) continue;
-            var data = card.GetComponent<CardData>();
-            if (data == null || data.buffType != CardData.BuffType.Always) continue;
+            if (card == null)
+                continue;
 
-            var effects = card.GetComponents<ICardEffect>();
-            foreach (var effect in effects)
+            CardData cardData = card.GetComponentInChildren<CardData>();
+            if (cardData != null)
             {
-                effect.Effect();
+                cardData.InitEffects(scoreManager, gameMaster, cardManager);
+                cardData.UseEffect();
             }
-
             if (scoreManager != null && scoreManager.uiManager != null)
             {
+                Debug.Log("[ApplyBuffCards] UI 갱신");
                 scoreManager.uiManager.UpdateScoreCalUI(
                     scoreManager.rate,
                     scoreManager.scoreYet,
                     scoreManager.resultScore
                 );
             }
-
             yield return new WaitForSeconds(0.5f);
         }
-        Debug.Log("[BuffManager] ApplyBuffCards 완료");
     }
 
-    public void ApplyStartBuffs()
+public void ApplyStartBuffs()
     {
         foreach (var card in buffCardList)
         {
             var data = card.GetComponent<CardData>();
             if (data != null && data.buffType == CardData.BuffType.OnStart)
             {
-                foreach (var effect in card.GetComponents<ICardEffect>())
+                foreach (var effect in card.GetComponents<CardData>())
                 {
-                    effect.Effect();
+                    effect.UseEffect();
                 }
             }
         }

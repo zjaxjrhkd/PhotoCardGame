@@ -14,26 +14,32 @@ public class ScoreManager : MonoBehaviour
     public float rate = 1.0f; // 배율
     public UIManager uiManager;
 
-    private readonly List<int> dantalkGroup1 = new List<int> { 5, 12, 19, 26, 33, 40, 47 };
-    private readonly List<int> dantalkGroup2 = new List<int> { 6, 13, 20, 27, 34, 41, 48 };
-    private readonly List<int> dantalkGroup3 = new List<int> { 7, 14, 21, 28, 35, 42, 49 };
+    private readonly List<int> dantalkGroup1 = new List<int> { 5, 12, 19, 26, 33, 40, 47, 55 };
+    private readonly List<int> dantalkGroup2 = new List<int> { 6, 13, 20, 27, 34, 41, 48, 56 };
+    private readonly List<int> dantalkGroup3 = new List<int> { 7, 14, 21, 28, 35, 42, 49, 57 };
 
     public Dictionary<string, int> lastComboScores = new Dictionary<string, int>();
 
+    public GameMaster gameMaster;
 
     public bool isBeldirStage = false;
     public bool isSitryStage = false;
 
+    public void Init(GameMaster gameMaster)
+    {
+        this.gameMaster = gameMaster; // gameMaster 할당
+    }
+
     // ScoreCalculator에서 가져온 콜렉터 Dictionary
     public Dictionary<string, List<int>> collectors = new Dictionary<string, List<int>>()
     {
-        { "이주인콜렉터", new List<int>{1,8,15,22,29,36,43,50} },
-        { "벨디르콜렉터", new List<int>{2,9,16,23,30,37,44,51} },
-        { "이아나콜렉터", new List<int>{3,10,17,24,31,38,45,52} },
-        { "시트리콜렉터", new List<int>{4,11,18,25,32,39,46,53} },
-        { "노이콜렉터", new List<int>{5,12,19,26,33,40,47} },
-        { "리미콜렉터", new List<int>{6,13,20,27,34,41,48} },
-        { "라즈콜렉터", new List<int>{7,14,21,28,35,42,49} },
+        { "이주인콜렉터", new List<int>{1,8,15,29,36,43,50} },
+        { "벨디르콜렉터", new List<int>{2,9,16,30,37,44,51} },
+        { "이아나콜렉터", new List<int>{3,10,17,31,38,45,52} },
+        { "시트리콜렉터", new List<int>{4,11,18,32,39,46,53} },
+        { "노이콜렉터", new List<int>{5,12,19,33,40,47, 55} },
+        { "리미콜렉터", new List<int>{6,13,20,34,41,48, 56} },
+        { "라즈콜렉터", new List<int>{7,14,21,35,42,49, 57} },
         { "Vlup", new List<int>{1,2,3,4,5,6,7} },
         { "Vfes1", new List<int>{8,9,10,11} },
         { "Vfes2", new List<int>{12,13,14} },
@@ -43,7 +49,8 @@ public class ScoreManager : MonoBehaviour
         { "Innovill", new List<int>{40,41,42} },
         { "LoveLetter", new List<int>{43,44,45,46,47,48,49} },
         { "Mea", new List<int>{50,51,52,53} },
-        { "Dantalk", new List<int>{} }
+        { "Dantalk", new List<int>{} },
+        { "SpringInnovill", new List<int>{55,56,57} }
     };
 
     public void InitStageFlags()
@@ -55,21 +62,21 @@ public class ScoreManager : MonoBehaviour
     private int GetScoreByCount(string name, int count)
     {
         // 세트별 점수 규칙
-        if (name == "Daystar" || name == "Innovill" || name == "Vfes2")
+        if (name == "Daystar" || name == "Innovill" || name == "Vfes2" || name == "SpringInnovill")
         {
             // Daystar: 37,38,39 (3장), Inovil: 40,41,42 (3장)
-            return count == 3 ? 500 : 0;
+            return count == 3 ? 800 : 0;
         }
         else if (name == "Mea" || name == "Vfes1")
         {
             // 매월매주: 50,51,52,53 (4장)
-            return count == 4 ? 600 : 0;
+            return count == 4 ? 1000 : 0;
         }
         else if (name == "Vlup" || name == "CheerUp" ||
                  name == "ColdSleep" || name == "LoveLetter")
         {
             // Vlup!: 1~7, Vfes: 8~14, CheerUp!: 15~21, ColdSleep: 28,29,30,31,32,34,35 (7장), LoveLetter: 43~49 (7장)
-            return count == 7 ? 1000 : 0;
+            return count == 7 ? 6000 : 0;
         }
         else if (name == "이아나콜렉터")
         {
@@ -78,11 +85,11 @@ public class ScoreManager : MonoBehaviour
             {
                 1 => 84,
                 2 => 168,
-                3 => 252,
-                4 => 336,
-                5 => 420,
-                6 => 504,
-                7 => 588,
+                3 => 336,
+                4 => 672,
+                5 => 1344,
+                6 => 2688,
+                7 => 5376,
                 _ => 0
             };
         }
@@ -90,12 +97,12 @@ public class ScoreManager : MonoBehaviour
         return count switch
         {
             1 => 10,
-            2 => 20,
-            3 => 40,
-            4 => 80,
-            5 => 160,
-            6 => 320,
-            7 => 640,
+            2 => 40,
+            3 => 160,
+            4 => 640,
+            5 => 1280,
+            6 => 2560,
+            7 => 5120,
             _ => 0
         };
     }
@@ -109,7 +116,7 @@ public class ScoreManager : MonoBehaviour
         // 세트 이름 목록
         HashSet<string> setNames = new HashSet<string>
     {
-        "Vlup", "Vfes1", "Vfes2", "CheerUp", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
+        "Vlup", "Vfes1", "Vfes2", "CheerUp", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea","SpringInnovill"
     };
 
         foreach (var entry in collectors)
@@ -121,13 +128,14 @@ public class ScoreManager : MonoBehaviour
 
             if (name == "Dantalk")
             {
+
                 // Dantalk 조건 체크
                 bool hasGroup1 = dantalkGroup1.Any(id => ownedCardIds.Contains(id));
                 bool hasGroup2 = dantalkGroup2.Any(id => ownedCardIds.Contains(id));
                 bool hasGroup3 = dantalkGroup3.Any(id => ownedCardIds.Contains(id));
                 if (hasGroup1 && hasGroup2 && hasGroup3)
                 {
-                    score = 777;
+                    score = 300;
                 }
             }
             else if (setNames.Contains(name))
@@ -163,7 +171,7 @@ public class ScoreManager : MonoBehaviour
         // 세트 이름 목록
         HashSet<string> setNames = new HashSet<string>
     {
-        "Vlup", "Vfes1", "Vfes2", "CheerUp", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea"
+        "Vlup", "Vfes1", "Vfes2", "CheerUp", "ColdSleep", "Daystar", "Innovill", "LoveLetter", "Mea", "SpringInnovill", "Dantalk"
     };
 
         // 선택된 카드의 cardId 수집
@@ -177,10 +185,10 @@ public class ScoreManager : MonoBehaviour
 
         var combos = GetMatchedCollectorScores(ownedCardIds);
 
-        // 세트가 완성된 경우에만 배경 변경
+        // 세트가 완성된 경우에만 배경 변경 (Dantalk은 제외)
         foreach (var combo in combos)
         {
-            if ((setNames.Contains(combo.Key) || combo.Key == "Dantalk") && combo.Value > 0)
+            if ((setNames.Contains(combo.Key)) && combo.Value > 0 && combo.Key != "Dantalk")
             {
                 string resourcePath = $"Image/BackGround/{combo.Key}";
                 Sprite newBackground = Resources.Load<Sprite>(resourcePath);
@@ -201,7 +209,7 @@ public class ScoreManager : MonoBehaviour
         {
             if (card == null) continue;
 
-            CardData cardData = card.GetComponent<CardData>();
+            CardData cardData = card.GetComponentInChildren<CardData>();
             if (cardData != null)
             {
                 scoreYet += 10;
@@ -215,21 +223,21 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
-    
-    public IEnumerator ApplyHandTypeCardEffects(List<GameObject> playCardList)
+
+    public IEnumerator ApplyHandTypeCardEffects(List<GameObject> playCardList, List<GameObject> checkCardList)
     {
         if (playCardList == null || playCardList.Count == 0)
             yield break;
 
         foreach (var cardObj in playCardList)
         {
-            if (cardObj == null)
-            {
-                Debug.LogWarning("[ScoreManager] playCardList에 null 오브젝트가 있습니다.");
+            if (cardObj == null || !cardObj.activeInHierarchy)
                 continue;
-            }
 
-            // playCardList에는 반드시 CardData가 붙은 Object-Data 오브젝트만 들어가야 함
+            // checkCardList에 포함된 카드는 효과 발동하지 않음
+            if (checkCardList != null && checkCardList.Contains(cardObj))
+                continue;
+
             CardData cardData = cardObj.GetComponentInChildren<CardData>();
             if (cardData == null)
             {
@@ -302,6 +310,8 @@ public class ScoreManager : MonoBehaviour
         {
             scoreYet += combo.Value;
             resultScore = Mathf.RoundToInt(scoreYet * rate);
+
+            gameMaster.musicManager.PlayCardEffectSFX(); // SFX 재생
 
             // 점수 계산 UI 갱신
             if (uiManager != null)

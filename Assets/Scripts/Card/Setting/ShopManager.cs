@@ -8,17 +8,14 @@ public class ShopManager : MonoBehaviour
 
     [Header("연결 대상")]
     public GameObject shopPanel; // 상점 전체 UI 패널
-    public GameObject cardSpawnRoot; // 카드 생성 위치 부모
     public GameMaster gameMaster;
-
-    [Header("버프 카드 위치 설정")]
-    public float minX = -3f;
-    public float maxX = 5f;
-    public float y = 0f;
-    public float z = 0f;
+    public CardSpawner cardSpawner;
 
     [Header("카드 가격")]
     public int buffCardPrice = 3;
+
+    // OpenShop에서 생성한 카드 추적용
+    private List<GameObject> spawnedShopCards = new List<GameObject>();
 
     public void OpenShop()
     {
@@ -26,6 +23,7 @@ public class ShopManager : MonoBehaviour
             shopPanel.SetActive(true);
 
         ClearSpawnedCards();
+        Debug.Log("[ShopManager] 상점 열림");
 
         int total = buffCardListSO.buffCards.Count;
         int count = Mathf.Min(4, total);
@@ -36,47 +34,81 @@ public class ShopManager : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             int randIdx = Random.Range(i, total);
-            // Swap
             int temp = indices[i];
             indices[i] = indices[randIdx];
             indices[randIdx] = temp;
         }
 
-        float spacing = (count > 1) ? (maxX - minX) / (count - 1) : 0;
-
+        // 선택된 인덱스 리스트 생성
+        List<int> selectedBuffCardIndices = new List<int>();
         for (int i = 0; i < count; i++)
         {
-            int cardIdx = indices[i];
-            GameObject prefab = buffCardListSO.buffCards[cardIdx];
-            Vector3 spawnPos = new Vector3(minX + spacing * i, y, -0.1f);
+            selectedBuffCardIndices.Add(indices[i]);
+        }
 
-            GameObject card = Instantiate(prefab, spawnPos, Quaternion.identity, cardSpawnRoot.transform);
+        if (cardSpawner == null)
+        {
+            Debug.LogError("ShopManager: cardSpawner가 null입니다.");
+            return;
+        }
 
-            CardData data = card.GetComponent<CardData>();
-            if (data != null)
-                data.cardId = cardIdx;
+        // 버프카드 생성 (index 기반)
+        List<GameObject> spawnedCards = cardSpawner.SpawnBuffCardsByIndex(selectedBuffCardIndices);
+
+        Debug.Log($"[ShopManager] 생성된 버프카드 개수: {spawnedCards.Count}");
+
+        // x축 -3.5~5 균등 분배, y=0, z=-1 고정
+        float startX = -3.5f;
+        float endX = 5f;
+        float spacing = (spawnedCards.Count > 1) ? (endX - startX) / (spawnedCards.Count - 1) : 0f;
+
+        spawnedShopCards.Clear();
+        for (int i = 0; i < spawnedCards.Count; i++)
+        {
+            GameObject card = spawnedCards[i];
+            float x = (spawnedCards.Count == 1) ? (startX + endX) / 2f : startX + spacing * i;
+            Vector3 spawnPos = new Vector3(x, 0f, -1f);
+            card.transform.position = spawnPos; // 부모 없이 위치만 지정
+
+            spawnedShopCards.Add(card);
+
+            var data = card.GetComponent<CardData>();
+            int cardId = data != null ? data.cardId : -1;
+            Debug.Log($"[ShopManager] 버프카드 생성: {card.name}, cardId: {cardId}, 위치: {spawnPos}");
         }
     }
 
-
-    public void CloseShop()
+    // 구매 시 ShopItemUI 등에서 호출
+    public void NotifyCardPurchased(GameObject card)
     {
-        if (shopPanel != null)
-            shopPanel.SetActive(false);
-    }
-    private void SetupShopItem(GameObject item, GameObject cardPrefab, int price)
-    {
-        item.SetActive(true);
-        ShopItemUI itemUI = item.GetComponent<ShopItemUI>();
-        itemUI.Setup(cardPrefab, price, gameMaster);
+        spawnedShopCards.Remove(card);
     }
 
     private void ClearSpawnedCards()
     {
-        foreach (Transform child in cardSpawnRoot.transform)
+        foreach (var card in spawnedShopCards)
         {
-            Destroy(child.gameObject);
+            if (card != null)
+                Destroy(card);
         }
+        spawnedShopCards.Clear();
+    }
+
+    public void CloseShop()
+    {
+        ClearSpawnedCards();
+        if (shopPanel != null)
+            shopPanel.SetActive(false);
+    }
+
+    private void SetupShopItem(GameObject item, int cardId, int price)
+    {
+        if (item == null) return;
+
+        item.SetActive(true);
+        ShopItemUI itemUI = item.GetComponent<ShopItemUI>();
+        if (itemUI != null)
+            itemUI.Setup(cardId, price, gameMaster, buffCardListSO);
     }
 
     public bool IsShopClosed()

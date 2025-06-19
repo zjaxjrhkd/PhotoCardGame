@@ -3,7 +3,10 @@ using UnityEngine.UI;
 
 public class MusicManager : MonoBehaviour
 {
-    public AudioSource audioSource;
+    public AudioSource audioSource;      // BGM용
+    public AudioSource sfxSource;        // SFX용 (인스펙터에서 할당)
+
+    // BGM
     public AudioClip jooinMusic;
     public AudioClip sitryMusic;
     public AudioClip limiMusic;
@@ -12,6 +15,17 @@ public class MusicManager : MonoBehaviour
     public AudioClip noiMusic;
     public AudioClip beldirMusic;
 
+    // SFX
+    public AudioClip sfxCardSelect;
+    public AudioClip sfxCardRemove;
+    public AudioClip sfxBuyBuff;
+    public AudioClip sfxComboComplete;
+    public AudioClip sfxDropCard;
+    public AudioClip sfxFlipCard;
+    public AudioClip sfxGetCoin;
+    public AudioClip sfxUIClick;
+    public AudioClip sfxCardEffect;
+
     public Slider volumeSlider; // 인스펙터에서 할당
 
     public void Init()
@@ -19,11 +33,13 @@ public class MusicManager : MonoBehaviour
         if (audioSource == null)
             audioSource = GetComponent<AudioSource>();
 
-        // 슬라이더가 할당되어 있으면 이벤트 연결
+        // SFX용 AudioSource도 인스펙터에서 할당 권장
+        if (sfxSource == null)
+            sfxSource = gameObject.AddComponent<AudioSource>();
+
         if (volumeSlider != null)
         {
             volumeSlider.onValueChanged.AddListener(SetVolume);
-            // 슬라이더 값과 오디오 볼륨 동기화
             volumeSlider.value = audioSource != null ? audioSource.volume : 1f;
         }
     }
@@ -73,4 +89,22 @@ public class MusicManager : MonoBehaviour
             Debug.LogWarning("[MusicManager] AudioSource 또는 Stage Music이 할당되지 않았습니다.");
         }
     }
+
+    // SFX 재생 메서드
+    public void PlaySFX(AudioClip clip)
+    {
+        if (sfxSource != null && clip != null)
+            sfxSource.PlayOneShot(clip);
+    }
+
+    // 각 SFX별로 편의 메서드 (필요시)
+    public void PlayCardSelectSFX() => PlaySFX(sfxCardSelect);
+    public void PlayCardRemoveSFX() => PlaySFX(sfxCardRemove);
+    public void PlayBuyBuffSFX() => PlaySFX(sfxBuyBuff);
+    public void PlayComboCompleteSFX() => PlaySFX(sfxComboComplete);
+    public void PlayDropCardSFX() => PlaySFX(sfxDropCard);
+    public void PlayFlipCardSFX() => PlaySFX(sfxFlipCard);
+    public void PlayGetCoinSFX() => PlaySFX(sfxGetCoin);
+    public void PlayUIClickSFX() => PlaySFX(sfxUIClick);
+    public void PlayCardEffectSFX() => PlaySFX(sfxCardEffect);
 }

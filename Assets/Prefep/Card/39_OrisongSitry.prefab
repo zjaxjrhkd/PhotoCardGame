@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 13e3d6a21e047c643af0909d51d74340, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6957c74e76e78d54e8a06f498dd448e8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -181,7 +181,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uC190\uC5D0 \uB4E4\uACE0 \uC788\uC73C\uBA74 Score+10 / Daystar"
+  cardInfo: "\uC190\uC5D0 \uB4E4\uACE0 \uC788\uC73C\uBA74 Stage * 10 / Daystar"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -200,6 +200,7 @@ MonoBehaviour:
   buffType: 0
   playType: 0
   characterType: 3
+  gameMaster: {fileID: 0}
 --- !u!114 &2175219428151341376
 MonoBehaviour:
   m_ObjectHideFlags: 0
