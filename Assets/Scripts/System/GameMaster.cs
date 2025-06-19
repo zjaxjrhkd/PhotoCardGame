@@ -280,16 +280,8 @@ public class GameMaster : MonoBehaviour
     {
         // SFX 재생
         musicManager.PlayUIClickSFX();
-
-
-        prevGameState = gameState; // 옵션 진입 전 상태 저장
-        prevSetProcessState = setProcessState; // 옵션 진입 전 processState 저장
-        gameState = GameState.Option;
-        setProcessState = SetProcessState.Option;
         if (optionUI != null)
             optionUI.SetActive(true);
-        else
-            Debug.LogWarning("[GameMaster] optionUI가 할당되지 않았습니다.");
     }
 
     public void OnExitButtonPressed()
