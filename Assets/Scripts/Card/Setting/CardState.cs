@@ -46,7 +46,7 @@ public class CardState : MonoBehaviour
         // 버프카드도 아니고 체크리스트에도 없으면 Background 이동
         Transform bg = transform.Find("Background");
         if (bg != null && !isBuffCard && !isInCheckList)
-            bg.position += new Vector3(0f, 1f, -1f);
+            bg.position += new Vector3(0f, 1f, 0f);
 
         if (isBuffCard)
         {
@@ -94,9 +94,21 @@ public class CardState : MonoBehaviour
         // 그 외(일반카드 + 체크리스트에 없는 경우)만 Background 이동 복귀
         Transform bg = transform.Find("Background");
         if (bg != null && !isBuffCard && !isInCheckList)
-            bg.position -= new Vector3(0f, 1f, -1f);
+            bg.position -= new Vector3(0f, 1f, 0f);
 
         if (hoverUI != null)
             hoverUI.SetActive(false);
+    }
+    public void ResetCardPosition()
+    {
+        // 카드 위치 초기화
+        Transform bg = transform.Find("Background");
+        if (bg != null)
+        {
+            bg.position = new Vector3(bg.position.x, -1, bg.position.z); // Y축을 0으로 초기화
+        }
+        
+        // 클릭 상태 초기화
+        isClick = false;
     }
 }
