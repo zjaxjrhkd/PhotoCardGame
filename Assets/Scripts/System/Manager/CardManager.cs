@@ -89,7 +89,7 @@ public class CardManager : MonoBehaviour
             var cardData = card.GetComponent<CardData>();
             if (cardState != null && cardData != null)
             {
-                // 선택 해제 처리
+                cardState.ResetCardPosition();
                 cardState.isClick = false;
                 RemoveCheckCardList(cardState, cardData);
             }
@@ -126,6 +126,7 @@ public class CardManager : MonoBehaviour
 
         for (int i = 0; i < countAll; i++)
         {
+            Debug.Log($"[CardManager] 정렬 후 카드 {i} 위치: {minX + spacing * i}, {baseZ + zStep * i}");
             var cardObj = playCardList[i];
             if (cardObj == null) continue;
             float x = (countAll == 1) ? (minX + maxX) / 2f : minX + spacing * i;
@@ -149,6 +150,8 @@ public class CardManager : MonoBehaviour
             if (cardState != null && cardData != null)
             {
                 cardState.isClick = false;
+                cardState.ResetCardPosition();
+
                 RemoveCheckCardList(cardState, cardData);
             }
         }
