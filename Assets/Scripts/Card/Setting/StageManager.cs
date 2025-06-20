@@ -154,11 +154,46 @@ public class StageManager : MonoBehaviour
         }
         else
         {
-            stageOrder = new List<string>(stageScoreTable.Keys);
+            // 기존 스테이지 순서 생성
+            var originalOrder = new List<string>(stageScoreTable.Keys);
+            stageOrder = new List<string>();
+
+            // 각 스테이지 뒤에 Shop 스테이지 삽입
+            for (int i = 0; i < originalOrder.Count; i++)
+            {
+                stageOrder.Add(originalOrder[i]);
+                // 마지막 스테이지가 아니면 Shop 삽입
+                if (i < originalOrder.Count - 1)
+                    stageOrder.Add($"Shop-{originalOrder[i]}");
+            }
             currentStageIndex = 0;
         }
         UpdateStageUI();
         UpdateStageImage();
+    }
+
+    public bool IsShopStage()
+    {
+        return GetCurrentStageName().StartsWith("Shop-");
+    }
+
+    public void GoToNextStage()
+    {
+        currentStageIndex++;
+        UpdateStageUI();
+        UpdateStageImage();
+    }
+
+    public void UpdateStageUI()
+    {
+        string currentStage = GetCurrentStageName();
+        if (stageText != null)
+        {
+            if (currentStage.StartsWith("Shop-"))
+                stageText.text = "Shop";
+            else
+                stageText.text = $"Stage : {currentStage}";
+        }
     }
 
     public void MarkStageTypeCleared(StageType type)
@@ -234,15 +269,6 @@ public class StageManager : MonoBehaviour
             return "";
         }
         return stageOrder[currentStageIndex];
-    }
-
-    private void UpdateStageUI()
-    {
-        string currentStage = GetCurrentStageName();
-        if (stageText != null)
-        {
-            stageText.text = $"Stage : {currentStage}";
-        }
     }
 
     // --- StageManagerWrapper에서 가져온 메서드 ---

@@ -17,6 +17,13 @@ public class BasicSitry : MonoBehaviour, ICardEffect
     }
     public void Effect()
     {
+        // playCardList에 있을 때만 효과 발동
+        if (cardManager == null || !cardManager.playCardList.Contains(this.gameObject))
+        {
+            Debug.Log("시트리 효과 미발동: playCardList에 없음");
+            return;
+        }
+
         Debug.Log("시트리 효과 발동!");
         if (scoreManager != null && gameMaster != null && gameMaster.stageManager != null)
         {

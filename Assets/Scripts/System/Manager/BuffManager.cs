@@ -44,13 +44,14 @@ public class BuffManager : MonoBehaviour
             return;
         }
 
-        if (coin < 3)
+        int cardCost = data.CardCost; // CardData에 정의된 비용 사용
+        if (coin < cardCost)
         {
-            Debug.Log("코인이 부족합니다.");
+            Debug.Log($"코인이 부족합니다. 필요 코인: {cardCost}, 보유 코인: {coin}");
             return;
         }
 
-        spendCoin(3);
+        spendCoin(cardCost);
 
         int index = data.cardId - 101;
         if (index < 0 || index >= buffCardListSO.buffCards.Count)

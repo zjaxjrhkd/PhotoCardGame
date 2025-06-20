@@ -198,7 +198,7 @@ MonoBehaviour:
   cardName: 
   cardType: 0
   buffType: 0
-  playType: 1
+  playType: 0
   characterType: 3
   gameMaster: {fileID: 0}
 --- !u!114 &5773424877809712126

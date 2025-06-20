@@ -5,7 +5,7 @@ using System.Collections;
 public class GameMaster : MonoBehaviour
 {
     public enum GameState { Draw, Select, Shop, ShopEnd, End, Option }
-    private GameState gameState;
+    public GameState gameState;
     private GameState prevGameState; // 옵션 진입 전 상태 저장
 
     public enum SetProcessState { None, Option,Idle, HandCardEffect, CardEffect, Buff, Collector, Calculate, Done }
@@ -55,7 +55,8 @@ public class GameMaster : MonoBehaviour
         buffManager.cardManager = cardManager;
         musicManager = GetComponent<MusicManager>();
         cardSpawner = GetComponent<CardSpawner>();
-    }
+        cardManager.deckCount = cardManager.defaltdeckCount;
+}
 
     void Start()
     {
@@ -83,7 +84,6 @@ public class GameMaster : MonoBehaviour
                 break;
         }
 
-        // Set 처리 상태 머신
         if (setProcessState != SetProcessState.None && setProcessState != SetProcessState.Idle)
         {
             HandleSetProcess();
@@ -92,6 +92,7 @@ public class GameMaster : MonoBehaviour
         if (gameState == GameState.Shop)
         {
             buffManager.DetectBuffCardClick(coin, SpendCoin);
+            cardManager.DetectShopCardClick(ref coin); // 일반 카드 구매 처리
         }
     }
 
@@ -216,6 +217,8 @@ public class GameMaster : MonoBehaviour
                     stageManager.MarkStageTypeCleared(currentStageTypeX2);
 
                     AddCoin(winCoin);
+                    ClearPlayCardList();
+                    cardManager.SetDeckSuffle();
                     gameState = GameState.Shop;
                     OpenShop();
                 }
@@ -291,6 +294,18 @@ public class GameMaster : MonoBehaviour
             optionUI.SetActive(false);
     }
 
+    public void ClearPlayCardList()
+    {
+        if (cardManager == null || cardManager.playCardList == null)
+            return;
+
+        foreach (var card in cardManager.playCardList)
+        {
+            if (card != null)
+                Destroy(card);
+        }
+        cardManager.playCardList.Clear();
+    }
 
     public void OnRestartButtonPressed()
     {
@@ -363,6 +378,18 @@ public class GameMaster : MonoBehaviour
         shopManager.CloseShop();
         scoreManager.SetScore();
         uiManager.UpdateScoreUI(scoreManager.score, targetScore);
+
+        // Shop 스테이지면 다음 스테이지로 인덱스 증가
+        if (stageManager.IsShopStage())
+        {
+            stageManager.GoToNextStage();
+        }
+        else
+        {
+            // 일반 스테이지면 기존대로 동작
+            stageManager.UpdateStageUI();
+        }
+
         gameState = GameState.ShopEnd;
     }
 
