@@ -20,6 +20,8 @@ public class CardData : MonoBehaviour
     public enum CharacterType { Jooin, Beldir, Iana, Sitry, Noi, Limi, Raz, Churos, Chami, Donddatge, Muddung, Rasky, Roze, Yasu }
     public CharacterType characterType;
 
+    public int CardCost;
+
     public GameMaster gameMaster; // 필드 추가
 
 

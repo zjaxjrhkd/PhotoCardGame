@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 3aac9af90f4296a48affcef7027e4e86, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f7739d842ad91ab4bb9fcafc2fbb2e08, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -96,7 +96,7 @@ GameObject:
   - component: {fileID: 640331457347648247}
   - component: {fileID: 1684024087024689895}
   - component: {fileID: 9157111277336514647}
-  - component: {fileID: 6141123382530226767}
+  - component: {fileID: 318231166373033690}
   m_Layer: 0
   m_Name: Data
   m_TagString: Untagged
@@ -181,8 +181,8 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "Set\uB41C \uBCA8\uB514\uB974 \uCE74\uB4DC 1\uC7A5\uB2F9 Score \uCD94\uAC00
-    10 * Stage"
+  cardInfo: "1/2 \uD655\uB960\uB85C \uC774\uC8FC\uC778 \uCE74\uB4DC \uB79C\uB364
+    \uC0DD\uC131"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,15 +195,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a066e290c16225429c2b34d88c46245, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardId: 102
+  cardId: 110
   cardName: 
   cardType: 1
   buffType: 1
   playType: 1
-  characterType: 13
-  CardCost: 3
+  characterType: 7
+  CardCost: 5
   gameMaster: {fileID: 0}
---- !u!114 &6141123382530226767
+--- !u!114 &318231166373033690
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -212,7 +212,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6579297294108217466}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0148434ca7c7bbe46a0473ae8d2f5b3b, type: 3}
+  m_Script: {fileID: 11500000, guid: 48f1e77efafd3674fb6e382042b5d3c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &8949536555947873314
@@ -225,7 +225,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3796667076923175730}
   m_Layer: 0
-  m_Name: 102_BuffYasu
+  m_Name: 110_BuffGoingChuros
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
