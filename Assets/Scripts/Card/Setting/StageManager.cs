@@ -10,7 +10,7 @@ public class StageManager : MonoBehaviour
         {"1-1", 300}, {"1-2", 500}, {"2-1", 800}, {"2-2", 1000},
         {"3-1", 1500}, {"3-2", 2000}, {"4-1", 3000}, {"4-2", 3500},
         {"5-1", 4000}, {"5-2", 4500}, {"6-1", 5500}, {"6-2", 7000},
-        {"7-1", 7500}, {"7-2", 8500}, {"8-1", 9000}, {"8-2", 10000}
+        {"7-1", 7500}, {"7-2", 8500}/*, {"8-1", 9000}, {"8-2", 10000}*/
     };
 
     public enum StageType { Jooin, Beldir, Iana, Sitry, Noi, Limi, Raz, Churos, Chami, Donddatge, Muddung, Rasky, Roze, Yasu }
@@ -20,6 +20,9 @@ public class StageManager : MonoBehaviour
     private int currentStageIndex;
 
     public TextMeshProUGUI stageText; // 현재 스테이지 UI
+
+    public GameObject clearObject; // 인스펙터에서 등록
+    public TextMeshProUGUI clearText; // 현재 스테이지 UI
 
     // --- StageManagerWrapper에서 가져온 필드 ---
     public SpriteListSO stageImageListSO;
@@ -42,8 +45,8 @@ public class StageManager : MonoBehaviour
         switch (stageType)
         {
             case StageType.Jooin:
-                // 목표 점수 10배
-                targetScore *= 10;
+                // 목표 점수 3.3배
+                targetScore = (int)(targetScore * 3.3f);
                 break;
 
             case StageType.Beldir:
@@ -205,7 +208,6 @@ public class StageManager : MonoBehaviour
     {
         return currentStageIndex >= stageOrder.Count - 1;
     }
-
     public bool CheckStageClear(int currentScore, out string message)
     {
         string currentStage = stageOrder[currentStageIndex];
@@ -215,6 +217,15 @@ public class StageManager : MonoBehaviour
         {
             message = $"스테이지 {currentStage} 클리어!";
             currentStageIndex++;
+
+            // 7-2 클리어 시 Clear 오브젝트 활성화 및 텍스트 출력
+            if (currentStage == "7-2")
+            {
+                if (clearObject != null)
+                    clearObject.SetActive(true);
+                if (clearText != null)
+                    clearText.text = "모든 스테이지 클리어!";
+            }
 
             if (currentStageIndex >= stageOrder.Count)
             {
@@ -233,8 +244,6 @@ public class StageManager : MonoBehaviour
         }
     }
 
-
-
     public bool CheckStageResult(int currentScore, out string message)
     {
         string currentStage = stageOrder[currentStageIndex];
@@ -244,6 +253,15 @@ public class StageManager : MonoBehaviour
         {
             message = $"스테이지 {currentStage} 클리어!";
             currentStageIndex++;
+
+            // 7-2 클리어 시 Clear 오브젝트 활성화 및 텍스트 출력
+            if (currentStage == "7-2")
+            {
+                if (clearObject != null)
+                    clearObject.SetActive(true);
+                if (clearText != null)
+                    clearText.text = "모든 스테이지 클리어!";
+            }
 
             if (currentStageIndex >= stageOrder.Count)
             {
@@ -260,7 +278,6 @@ public class StageManager : MonoBehaviour
             return false;
         }
     }
-
     public string GetCurrentStageName()
     {
         if (stageOrder == null || stageOrder.Count == 0)

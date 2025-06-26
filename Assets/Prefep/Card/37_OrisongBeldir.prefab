@@ -200,6 +200,7 @@ MonoBehaviour:
   buffType: 0
   playType: 1
   characterType: 1
+  CardCost: 3
   gameMaster: {fileID: 0}
 --- !u!114 &6967114055099680516
 MonoBehaviour:

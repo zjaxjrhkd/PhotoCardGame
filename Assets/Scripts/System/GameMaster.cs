@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class GameMaster : MonoBehaviour
@@ -91,7 +92,7 @@ public class GameMaster : MonoBehaviour
 
         if (gameState == GameState.Shop)
         {
-            buffManager.DetectBuffCardClick(coin, SpendCoin);
+            buffManager.DetectBuffCardClick(coin, SpendCoin, GetCoin);
             cardManager.DetectShopCardClick(ref coin); // 일반 카드 구매 처리
         }
     }
@@ -294,6 +295,14 @@ public class GameMaster : MonoBehaviour
             optionUI.SetActive(false);
     }
 
+    public void OnMainMenuButtonPressed()
+    {
+        if (optionUI != null)
+            optionUI.SetActive(false);
+        // 메인 메뉴로 이동
+        UnityEngine.SceneManagement.SceneManager.LoadScene("2.MainmenuScene");
+    }
+
     public void ClearPlayCardList()
     {
         if (cardManager == null || cardManager.playCardList == null)
@@ -424,6 +433,13 @@ public class GameMaster : MonoBehaviour
     public void SpendCoin(int amount)
     {
         coin -= amount;
+        // 필요시 코인 UI 갱신
+        uiManager.UpdateCoinUI(coin);
+    }
+
+    public void GetCoin(int amount)
+    {
+        coin += amount;
         // 필요시 코인 UI 갱신
         uiManager.UpdateCoinUI(coin);
     }

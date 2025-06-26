@@ -183,6 +183,7 @@ MonoBehaviour:
   buffType: 0
   playType: 1
   characterType: 0
+  CardCost: 3
   gameMaster: {fileID: 0}
 --- !u!114 &7346852297835471915
 MonoBehaviour:
@@ -201,7 +202,6 @@ MonoBehaviour:
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
   cardInfo: "Set\uC2DC Score + 100 / Vlup"
-  visualTransform: {fileID: 274520207707344196}
 --- !u!114 &3715635363082696233
 MonoBehaviour:
   m_ObjectHideFlags: 0
