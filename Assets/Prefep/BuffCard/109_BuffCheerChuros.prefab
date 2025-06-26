@@ -96,7 +96,7 @@ GameObject:
   - component: {fileID: 640331457347648247}
   - component: {fileID: 1684024087024689895}
   - component: {fileID: 9157111277336514647}
-  - component: {fileID: 5023958949440884658}
+  - component: {fileID: 7508964296960449840}
   m_Layer: 0
   m_Name: Data
   m_TagString: Untagged
@@ -203,7 +203,7 @@ MonoBehaviour:
   characterType: 7
   CardCost: 5
   gameMaster: {fileID: 0}
---- !u!114 &5023958949440884658
+--- !u!114 &7508964296960449840
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -212,7 +212,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6579297294108217466}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 20f618daf70f7e94aaf3f924580ea6f2, type: 3}
+  m_Script: {fileID: 11500000, guid: 75e283cf0a493874b8d95f40916e6039, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &8949536555947873314

@@ -682,11 +682,25 @@ public class CardManager : MonoBehaviour
             if (removed)
                 ArrangeCardsWithinRange(true);
 
+            // === 카드와 Background의 y축을 0으로 이동 ===
+            // 카드 오브젝트
+            Vector3 cardPos = parentCard.transform.position;
+            parentCard.transform.position = new Vector3(cardPos.x, 0f, cardPos.z);
+
             if (!selectCardList.Contains(parentCard))
             {
                 int emptyIdx = selectCardList.FindIndex(obj => obj == null);
                 if (emptyIdx != -1)
                 {
+                    // Background 오브젝트
+                    Transform bg = parentCard.transform.Find("Data/Background");
+                    if (bg != null)
+                    {
+                        Vector3 bgPos = bg.position;
+                        bg.position = new Vector3(bgPos.x, 0f, bgPos.z);
+                    }
+                    // =========================================
+
                     selectCardList[emptyIdx] = parentCard;
                     Vector3 targetPos = GetSelectCardPosition(emptyIdx);
                     parentCard.transform.DOMove(targetPos, 0.3f).SetEase(Ease.OutCubic);
@@ -730,6 +744,19 @@ public class CardManager : MonoBehaviour
         }
     }
 
+    // CardManager 클래스 내부에 추가
+    private void SortCheckCardListById()
+    {
+        checkCardList.Sort((a, b) =>
+        {
+            var dataA = a != null ? a.GetComponent<CardData>() : null;
+            var dataB = b != null ? b.GetComponent<CardData>() : null;
+            int idA = dataA != null ? dataA.cardId : 0;
+            int idB = dataB != null ? dataB.cardId : 0;
+            return idA.CompareTo(idB);
+        });
+    }
+
     public void RemoveCheckCardList(CardState cardStateRead, CardData cardDataRead)
     {
         if (gameMaster != null && gameMaster.musicManager != null)
@@ -751,6 +778,17 @@ public class CardManager : MonoBehaviour
         {
             selectCardList[idx] = null;
         }
+
+        // === 카드 오브젝트의 y축을 -3.2로, Background는 0으로 이동 ===
+        Vector3 cardPos = parentCard.transform.position;
+        parentCard.transform.position = new Vector3(cardPos.x, -3.2f, cardPos.z);
+        Transform bg = parentCard.transform.Find("Background");
+        if (bg != null)
+        {
+            Vector3 bgPos = bg.position;
+            bg.position = new Vector3(bgPos.x, 0f, bgPos.z);
+        }
+        // ================================================
 
         ArrangeCardsWithinRange(true);
 
@@ -794,7 +832,7 @@ public class CardManager : MonoBehaviour
         {
             float x = minX + spacing * i;
             float z = baseZ + zStep * i;
-            Vector3 targetPos = new Vector3(x, y, z);
+            Vector3 targetPos = new Vector3(x, -3.2f, z);
             if (useTween)
                 activeCards[i].transform.DOMove(targetPos, 0.3f).SetEase(Ease.OutCubic);
             else
@@ -851,7 +889,7 @@ public class CardManager : MonoBehaviour
     {
         if (index < 0 || index >= selectCardXPositions.Length)
             return Vector3.zero;
-        return new Vector3(selectCardXPositions[index], selectCardY - 1, selectCardZ);
+        return new Vector3(selectCardXPositions[index], 0, selectCardZ);
     }
 
     public List<CollectorComboResult> GetCompletedCollectorCombos(ScoreManager scoreManager)

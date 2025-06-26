@@ -26,21 +26,45 @@ public class MusicManager : MonoBehaviour
     public AudioClip sfxUIClick;
     public AudioClip sfxCardEffect;
 
+    private GameData gameData; // GameData 참조용
+
+
     public Slider volumeSlider; // 인스펙터에서 할당
+    public Slider sfxvolumeSlider; // SFX 볼륨 조절용 슬라이더 (인스펙터에서 할당)
+
+
+    private void Awake()
+    {
+        // GameData 오브젝트에서 GameData 컴포넌트 가져오기
+        gameData = FindObjectOfType<GameData>();
+        if (gameData == null)
+        {
+            Debug.LogError("[MusicManager] GameData 오브젝트를 찾을 수 없습니다.");
+        }
+    }
 
     public void Init()
     {
         if (audioSource == null)
             audioSource = GetComponent<AudioSource>();
 
-        // SFX용 AudioSource도 인스펙터에서 할당 권장
         if (sfxSource == null)
             sfxSource = gameObject.AddComponent<AudioSource>();
 
         if (volumeSlider != null)
         {
             volumeSlider.onValueChanged.AddListener(SetVolume);
-            volumeSlider.value = audioSource != null ? audioSource.volume : 1f;
+            // GameData의 볼륨값을 슬라이더에 반영
+            if (gameData != null)
+                volumeSlider.value = gameData.bgmVolume;
+            else
+                volumeSlider.value = audioSource != null ? audioSource.volume : 1f;
+        }
+
+        if (sfxvolumeSlider != null)
+        {
+            sfxvolumeSlider.onValueChanged.AddListener(SetSFXVolume);
+            sfxvolumeSlider.value = sfxSource != null ? sfxSource.volume : 1f;
         }
     }
 
@@ -48,6 +72,13 @@ public class MusicManager : MonoBehaviour
     {
         if (audioSource != null)
             audioSource.volume = value;
+    }
+
+    // SFX 볼륨 조절 메서드 추가
+    public void SetSFXVolume(float value)
+    {
+        if (sfxSource != null)
+            sfxSource.volume = value;
     }
 
     public void PlayStageMusic(StageManager.StageType stageType)
