@@ -13,6 +13,7 @@ public class StageManager : MonoBehaviour
         {"7-1", 7500}, {"7-2", 8500}/*, {"8-1", 9000}, {"8-2", 10000}*/
     };
 
+
     public enum StageType { Jooin, Beldir, Iana, Sitry, Noi, Limi, Raz, Churos, Chami, Donddatge, Muddung, Rasky, Roze, Yasu }
     public StageType stageType;
 
@@ -22,6 +23,9 @@ public class StageManager : MonoBehaviour
     public TextMeshProUGUI stageText; // 현재 스테이지 UI
 
     public GameObject clearObject; // 인스펙터에서 등록
+    public GameObject clearButton; // 인스펙터에서 등록
+    public GameObject restartButton; // 인스펙터에서 등록
+
     public TextMeshProUGUI clearText; // 현재 스테이지 UI
 
     // --- StageManagerWrapper에서 가져온 필드 ---
@@ -45,8 +49,7 @@ public class StageManager : MonoBehaviour
         switch (stageType)
         {
             case StageType.Jooin:
-                // 목표 점수 3.3배
-                targetScore = (int)(targetScore * 3.3f);
+                Debug.Log("주인 스테이지 효과 적용");
                 break;
 
             case StageType.Beldir:
@@ -173,6 +176,17 @@ public class StageManager : MonoBehaviour
         }
         UpdateStageUI();
         UpdateStageImage();
+        clearObject.SetActive(false);
+        clearButton.SetActive(false);
+        restartButton.SetActive(false);
+
+
+    }
+
+    public void OnClickClear()
+    {
+        clearObject.SetActive(false);
+        Debug.Log("클리어 버튼 클릭: 클리어 오브젝트 비활성화");
     }
 
     public bool IsShopStage()
@@ -208,10 +222,16 @@ public class StageManager : MonoBehaviour
     {
         return currentStageIndex >= stageOrder.Count - 1;
     }
+    /*
     public bool CheckStageClear(int currentScore, out string message)
     {
         string currentStage = stageOrder[currentStageIndex];
         int requiredScore = stageScoreTable[currentStage];
+        if (stageType == StageType.Jooin)
+        {
+            Debug.Log("주인ㅁㄴㅇ 스테이지 효과 적용");
+            requiredScore = (int)(requiredScore * 3.3f);
+        }
 
         if (currentScore >= requiredScore)
         {
@@ -243,40 +263,58 @@ public class StageManager : MonoBehaviour
             return false;
         }
     }
-
-    public bool CheckStageResult(int currentScore, out string message)
+    */
+    public bool CheckStageResult(int currentScore, int setCount, out string message)
     {
         string currentStage = stageOrder[currentStageIndex];
         int requiredScore = stageScoreTable[currentStage];
+        if (stageType == StageType.Jooin)
+            requiredScore = (int)(requiredScore * 3.3f);
 
+        // setCount가 0이거나 점수 미달이면 실패
+        if (setCount == 0 && currentScore < requiredScore)
+        {
+            if (clearObject != null)
+                clearObject.SetActive(true);
+            if (clearText != null)
+                clearText.text = "스테이지 : " + currentStage + " 실패!  목표 점수 : " + requiredScore;
+            message = $"스테이지 {currentStage} 실패!";
+            restartButton.SetActive(true);
+
+            return false;
+        }
+
+        // 클리어 조건
         if (currentScore >= requiredScore)
         {
+            if (clearObject != null)
+                clearObject.SetActive(true);
+            if (clearText != null)
+                clearText.text = "스테이지 클리어!";
+
             message = $"스테이지 {currentStage} 클리어!";
+            clearButton.SetActive(true);
             currentStageIndex++;
 
-            // 7-2 클리어 시 Clear 오브젝트 활성화 및 텍스트 출력
-            if (currentStage == "7-2")
+
+            if (currentStage == "7-2" || currentStageIndex >= stageOrder.Count)
             {
+                message = "모든 스테이지 클리어!";
                 if (clearObject != null)
                     clearObject.SetActive(true);
                 if (clearText != null)
                     clearText.text = "모든 스테이지 클리어!";
-            }
-
-            if (currentStageIndex >= stageOrder.Count)
-            {
-                message = "모든 스테이지 클리어!";
+                restartButton.SetActive(true);
             }
 
             UpdateStageUI();
             UpdateStageImage();
             return true;
         }
-        else
-        {
-            message = $"스테이지 {currentStage} 실패! 목표 점수: {requiredScore}";
-            return false;
-        }
+
+        // 모든 경로에서 message 할당
+        message = "알 수 없는 오류";
+        return false;
     }
     public string GetCurrentStageName()
     {
@@ -318,7 +356,13 @@ public class StageManager : MonoBehaviour
 
         string currentStage = stageOrder[currentStageIndex];
         if (stageScoreTable.TryGetValue(currentStage, out int targetScore))
-            return targetScore;
+        {
+            // Jooin 스테이지면 3.3배 반환
+            if (stageType == StageType.Jooin)
+                return (int)(targetScore * 3.3f);
+            else
+                return targetScore;
+        }
         else
             return 0;
     }

@@ -25,6 +25,7 @@ public class MusicManager : MonoBehaviour
     public AudioClip sfxGetCoin;
     public AudioClip sfxUIClick;
     public AudioClip sfxCardEffect;
+    public AudioClip sfxStageClear;
 
     private GameData gameData; // GameData ÂüÁ¶¿ë
 
@@ -58,14 +59,19 @@ public class MusicManager : MonoBehaviour
             if (gameData != null)
                 volumeSlider.value = gameData.bgmVolume;
             else
-                volumeSlider.value = audioSource != null ? audioSource.volume : 1f;
+            {
+                volumeSlider.onValueChanged.AddListener(SetVolume);
+                volumeSlider.value = 0.5f;
+            }
         }
 
         if (sfxvolumeSlider != null)
         {
             sfxvolumeSlider.onValueChanged.AddListener(SetSFXVolume);
-            sfxvolumeSlider.value = sfxSource != null ? sfxSource.volume : 1f;
+            sfxvolumeSlider.value = 0.5f;
         }
+        if (sfxSource != null)
+            sfxSource.volume = 0.5f;
     }
 
     public void SetVolume(float value)
@@ -138,4 +144,5 @@ public class MusicManager : MonoBehaviour
     public void PlayGetCoinSFX() => PlaySFX(sfxGetCoin);
     public void PlayUIClickSFX() => PlaySFX(sfxUIClick);
     public void PlayCardEffectSFX() => PlaySFX(sfxCardEffect);
+    public void PlayStageClearSFX() => PlaySFX(sfxStageClear);
 }

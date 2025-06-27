@@ -7,7 +7,7 @@ public class GameData : MonoBehaviour
     public static GameData Instance { get; private set; }
 
  
-    public float bgmVolume = 0.3f;
+    public float bgmVolume = 0.5f;
 
     void Awake()
     {
