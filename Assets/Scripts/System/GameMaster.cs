@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using DG.Tweening;
 
 public class GameMaster : MonoBehaviour
 {
@@ -192,31 +193,27 @@ public class GameMaster : MonoBehaviour
                 scoreManager.SetCalculateResutScore();
                 if (cardManager.selectCardList != null)
                 {
-                    foreach (var card in cardManager.selectCardList)
-                    {
+                    cardManager.selectCardList.ForEach(card => {
                         if (card != null)
-                            Destroy(card);
-                    }
+                        {
+                            Vector3 targetPos = card.transform.position + new Vector3(10f, 0f, -1f);
+                            card.transform.DOMove(targetPos, 0.3f).SetEase(Ease.InCubic)
+                                .OnComplete(() => Destroy(card));
+                        }
+                    });
                     cardManager.selectCardList = new List<GameObject>(new GameObject[7]);
                 }
-
-                foreach (GameObject card in cardManager.checkCardList)
-                {
-                    GameObject parentCard = card.transform.parent.gameObject;
-                    cardManager.playCardList.Remove(parentCard);
-                    Destroy(parentCard);
-                }
-
                 drawCount = cardManager.checkCardList.Count;
                 cardManager.DrawCards(drawCount);
                 cardManager.checkCardList.Clear();
 
-                if (stageManager.CheckStageResult(scoreManager.score, out stageMessage))
+                if (stageManager.CheckStageResult(scoreManager.score, currentSetCount, out string message))
                 {
                     // 스테이지 클리어 시 클리어 타입 등록
                     stageManager.MarkStageTypeCleared(currentStageTypeX1);
                     stageManager.MarkStageTypeCleared(currentStageTypeX2);
 
+                    musicManager.PlayStageClearSFX();
                     AddCoin(winCoin);
                     ClearPlayCardList();
                     cardManager.SetDeckSuffle();
@@ -236,6 +233,8 @@ public class GameMaster : MonoBehaviour
                 break;
         }
     }
+
+
 
     private IEnumerator HandCardEffectCoroutine()
     {
@@ -322,6 +321,22 @@ public class GameMaster : MonoBehaviour
         // 옵션 UI가 열려 있으면 닫기
         if (optionUI != null)
             optionUI.SetActive(false);
+
+        // 스테이지 클리어 정보 및 인덱스 초기화
+        if (stageManager != null)
+        {
+            // 스테이지 클리어 타입 초기화
+            var clearedTypesField = stageManager.GetType().GetField("clearedTypes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (clearedTypesField != null)
+            {
+                var clearedTypes = clearedTypesField.GetValue(stageManager) as HashSet<StageManager.StageType>;
+                clearedTypes?.Clear();
+            }
+            // 스테이지 인덱스 초기화
+            var currentStageIndexField = stageManager.GetType().GetField("currentStageIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (currentStageIndexField != null)
+                currentStageIndexField.SetValue(stageManager, 0);
+        }
 
         // 게임 재시작
         StartGame();

@@ -106,11 +106,16 @@ public class CardManager : MonoBehaviour
 
         // 카드 효과 초기화
         var cardData = cardObj.GetComponentInChildren<CardData>();
+        
         if (cardData != null)
             cardData.InitEffects(scoreManager, gameMaster, this);
-
-        // 상점 진열 카드 제거
-        Destroy(data.gameObject);
+        // 1. 생성된 카드의 위치를 상점 카드의 위치로 맞춤
+        
+        //구매 후 이동
+        data.gameObject.transform.position = data.transform.position;
+        data.gameObject.transform.DOMove(new Vector3(10f, -3f, -50f), 0.3f).SetEase(Ease.OutCubic);
+        
+//        Destroy(data.gameObject);
 
         // 구매 카드 리스트에만 추가
         purchasedCardList.Add(cardId);
