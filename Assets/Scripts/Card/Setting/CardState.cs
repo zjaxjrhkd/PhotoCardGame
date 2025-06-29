@@ -8,7 +8,7 @@ public class CardState : MonoBehaviour
 
     public GameObject hoverUI;
     public TextMeshProUGUI hoverText;
-    public string cardInfo = "카드 설명";
+    [TextArea] public string cardInfo = "카드 설명";
 
     
     private bool isHovering = false; // 현재 마우스가 올라간 상태 여부

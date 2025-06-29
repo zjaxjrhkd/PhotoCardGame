@@ -16,6 +16,9 @@ public class BuffManager : MonoBehaviour
     public float buffDefaultSpacing = 1f;
     public float buffMinSpacing = 0.3f;
 
+    public GameObject sellBackImage;
+    public GameObject buyBackImage;
+
     public bool buyBuffCard = true;
 
     public UIManager uiManager;
@@ -55,7 +58,7 @@ public class BuffManager : MonoBehaviour
             }
 
             spendCoin(cardCost);
-
+            gameMaster.musicManager.PlayBuyBuffSFX();
             int index = data.cardId - 101;
             if (index < 0 || index >= buffCardListSO.buffCards.Count)
             {
@@ -152,6 +155,7 @@ public class BuffManager : MonoBehaviour
                         Debug.Log(" - GameObject 있음, CardData 없음");
                 }
             }
+            gameMaster.musicManager.PlayGetCoinSFX();
 
             Debug.Log($"버프 카드 판매 완료: {data.cardName}, 반환 코인: {sellValue}");
 
@@ -164,10 +168,17 @@ public class BuffManager : MonoBehaviour
     public void OnbuyButten()
     {
         buyBuffCard = true;
+        sellBackImage.SetActive(false); 
+        buyBackImage.SetActive(true);
+        gameMaster.musicManager.PlayUIClickSFX();
     }
     public void OnSellButten()
     {
         buyBuffCard = false;
+        sellBackImage.SetActive(true);  
+        buyBackImage.SetActive(false);
+        gameMaster.musicManager.PlayUIClickSFX();
+
     }
 
     public void RearrangeBuffCards()

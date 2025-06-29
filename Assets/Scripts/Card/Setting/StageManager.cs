@@ -7,14 +7,15 @@ public class StageManager : MonoBehaviour
 {
     public Dictionary<string, int> stageScoreTable = new Dictionary<string, int>()
     {
-        {"1-1", 300}, {"1-2", 500}, {"2-1", 800}, {"2-2", 1000},
-        {"3-1", 1500}, {"3-2", 2000}, {"4-1", 3000}, {"4-2", 3500},
-        {"5-1", 4000}, {"5-2", 4500}, {"6-1", 5500}, {"6-2", 7000},
-        {"7-1", 7500}, {"7-2", 8500}/*, {"8-1", 9000}, {"8-2", 10000}*/
+    {"1-1", 300}, {"1-2", 500}, {"2-1", 800}, {"2-2", 1000},
+    {"3-1", 1500}, {"3-2", 2000}, {"4-1", 3000}, {"4-2", 3500},
+    {"5-1", 4000}, {"5-2", 4500}, {"6-1", 5500}, {"6-2", 7000},
+    {"7-1", 7500}, {"7-2", 8500},
+    {"연습", 100} // ← 연습 스테이지 추가
     };
 
 
-    public enum StageType { Jooin, Beldir, Iana, Sitry, Noi, Limi, Raz, Churos, Chami, Donddatge, Muddung, Rasky, Roze, Yasu }
+    public enum StageType { Jooin, Beldir, Iana, Sitry, Noi, Limi, Raz, Churos, Chami, Donddatge, Muddung, Rasky, Roze, Yasu, Tutorial } // Tutorial 추가
     public StageType stageType;
 
     private List<string> stageOrder;
@@ -25,6 +26,7 @@ public class StageManager : MonoBehaviour
     public GameObject clearObject; // 인스펙터에서 등록
     public GameObject clearButton; // 인스펙터에서 등록
     public GameObject restartButton; // 인스펙터에서 등록
+    public GameObject tutorialexitButton; // 인스펙터에서 등록
 
     public TextMeshProUGUI clearText; // 현재 스테이지 UI
 
@@ -81,6 +83,23 @@ public class StageManager : MonoBehaviour
                 cardManager.isRazStage = true;
                 break;
         }
+    }
+
+    public void SetTutorialStage()
+    {
+        stageType = StageType.Tutorial;
+        UpdateStageImage();
+    }
+
+    public void InitializeTutorial()
+    {
+        stageOrder = new List<string> { "연습" };
+        currentStageIndex = 0;
+        UpdateStageUI();
+        UpdateStageImage();
+        if (clearObject != null) clearObject.SetActive(false);
+        if (clearButton != null) clearButton.SetActive(false);
+        if (restartButton != null) restartButton.SetActive(false);
     }
 
     private static readonly StageType[] X1Types = {
@@ -267,25 +286,59 @@ public class StageManager : MonoBehaviour
     public bool CheckStageResult(int currentScore, int setCount, out string message)
     {
         string currentStage = stageOrder[currentStageIndex];
-        int requiredScore = stageScoreTable[currentStage];
-        if (stageType == StageType.Jooin)
-            requiredScore = (int)(requiredScore * 3.3f);
+        tutorialexitButton.SetActive(false);
+        restartButton.SetActive(false);
+        clearButton.SetActive(false);
 
-        // setCount가 0이거나 점수 미달이면 실패
-        if (setCount == 0 && currentScore < requiredScore)
+        // 튜토리얼 스테이지는 딕셔너리 접근 없이 직접 처리
+        if (currentStage == "연습" || stageType == StageType.Tutorial)
+        {
+            int requiredScore = 100;
+            if (currentScore >= requiredScore)
+            {
+                if (clearObject != null)
+                    clearObject.SetActive(true);
+                if (clearText != null)
+                    clearText.text = "튜토리얼 클리어!.";
+                if (tutorialexitButton != null)
+                    tutorialexitButton.SetActive(true);
+                // 추가 동작 필요시 여기에 작성
+                message = "튜토리얼 클리어!";
+                return true;
+            }
+            else if (setCount == 0 && currentScore < requiredScore) // 여기 requiredScore로!
+            {
+                if (clearObject != null)
+                    clearObject.SetActive(true);
+                if (clearText != null)
+                    clearText.text = "튜토리얼 실패! 목표 점수: 100";
+                if (restartButton != null)
+                    restartButton.SetActive(true);
+
+                message = "튜토리얼 실패!";
+                return false;
+            }
+        }
+
+        // 기존 일반 스테이지 처리
+        int required = stageScoreTable[currentStage];
+        if (stageType == StageType.Jooin)
+            required = (int)(required * 3.3f);
+
+        if (setCount == 0 && currentScore < required)
         {
             if (clearObject != null)
                 clearObject.SetActive(true);
             if (clearText != null)
-                clearText.text = "스테이지 : " + currentStage + " 실패!  목표 점수 : " + requiredScore;
+                clearText.text = "스테이지 : " + currentStage + " 실패!  목표 점수 : " + required;
             message = $"스테이지 {currentStage} 실패!";
-            restartButton.SetActive(true);
+            if (restartButton != null)
+                restartButton.SetActive(true);
 
             return false;
         }
 
-        // 클리어 조건
-        if (currentScore >= requiredScore)
+        if (currentScore >= required)
         {
             if (clearObject != null)
                 clearObject.SetActive(true);
@@ -293,9 +346,9 @@ public class StageManager : MonoBehaviour
                 clearText.text = "스테이지 클리어!";
 
             message = $"스테이지 {currentStage} 클리어!";
-            clearButton.SetActive(true);
+            if (clearButton != null)
+                clearButton.SetActive(true);
             currentStageIndex++;
-
 
             if (currentStage == "7-2" || currentStageIndex >= stageOrder.Count)
             {
@@ -304,7 +357,8 @@ public class StageManager : MonoBehaviour
                     clearObject.SetActive(true);
                 if (clearText != null)
                     clearText.text = "모든 스테이지 클리어!";
-                restartButton.SetActive(true);
+                if (restartButton != null)
+                    restartButton.SetActive(true);
             }
 
             UpdateStageUI();
@@ -312,7 +366,6 @@ public class StageManager : MonoBehaviour
             return true;
         }
 
-        // 모든 경로에서 message 할당
         message = "알 수 없는 오류";
         return false;
     }
@@ -351,10 +404,14 @@ public class StageManager : MonoBehaviour
 
     public int GetTargetScore()
     {
+        string currentStage = stageOrder[currentStageIndex];
+
         if (stageOrder == null || stageOrder.Count == 0)
             return 0;
 
-        string currentStage = stageOrder[currentStageIndex];
+        if (currentStage == "연습" || stageType == StageType.Tutorial)
+            return 100; // 튜토리얼은 100점 고정
+    
         if (stageScoreTable.TryGetValue(currentStage, out int targetScore))
         {
             // Jooin 스테이지면 3.3배 반환

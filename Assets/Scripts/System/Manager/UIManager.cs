@@ -23,10 +23,6 @@ public class UIManager : MonoBehaviour
 
     private string[] prevComboKeys = new string[4]; // 각 슬롯별 이전 콤보 키 저장
 
-
-
-
-
     public void UpdateScoreUI(int score, int targetScore)
     {
         if (scoreText != null)
