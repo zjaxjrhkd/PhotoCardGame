@@ -181,7 +181,8 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uC190\uC5D0 \uB4E4\uACE0 \uC788\uC73C\uBA74 Stage * 10"
+  cardInfo: "\uC190\uC5D0 \uB4E4\uACE0 \uC788\uC73C\uBA74 \n\uC810\uC218 \uCD94\uAC00\n(Stage
+    * 10)"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0

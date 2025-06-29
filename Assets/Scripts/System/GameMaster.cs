@@ -22,6 +22,7 @@ public class GameMaster : MonoBehaviour
     public ShopManager shopManager;
     public CardSpawner cardSpawner;
     public MusicManager musicManager; // 음악 매니저 추가
+    public GameObject tutorialSystem; // 튜토리얼 시스템 추가
 
     public GameObject optionUI;
 
@@ -44,6 +45,8 @@ public class GameMaster : MonoBehaviour
 
     void Awake()
     {
+        Screen.SetResolution(1920, 1080, false);
+
         cardManager = GetComponent<CardManager>();
         buffManager = GetComponent<BuffManager>();
         scoreManager = GetComponent<ScoreManager>();
@@ -58,7 +61,7 @@ public class GameMaster : MonoBehaviour
         musicManager = GetComponent<MusicManager>();
         cardSpawner = GetComponent<CardSpawner>();
         cardManager.deckCount = cardManager.defaltdeckCount;
-}
+    }
 
     void Start()
     {
@@ -100,36 +103,79 @@ public class GameMaster : MonoBehaviour
 
     public void StartGame()
     {
+        if (musicManager.gameData == null || musicManager.gameData.isTutorial == false)
+        {
+            uiManager.UpdateBackgroundUI();
+            musicManager.Init(); // 음악 매니저 초기화s
+            scoreManager.Init(this); // 점수 매니저 초기화
+            uiManager.HideCollectorComboImages();
+
+            maxSetCount = 3;
+            maxDropCount = 3;
+            stageManager.Initialize();
+
+            var stagePair = stageManager.DecideStageTypeAndUpdateImage();
+            if (stagePair.HasValue)
+            {
+                currentStageTypeX1 = stagePair.Value.x1;
+                currentStageTypeX2 = stagePair.Value.x2;
+                Debug.Log($"[GameMaster] 스테이지 타입 결정: x-1={currentStageTypeX1}, x-2={currentStageTypeX2}");
+
+                // x-1 스테이지에 해당하는 음악 재생
+                if (musicManager != null)
+                    musicManager.PlayStageMusic(currentStageTypeX1);
+            }
+
+            targetScore = stageManager.GetTargetScore();
+            // 스테이지 효과 적용
+            stageManager.ApplyStageEffect(scoreManager, cardManager, buffManager, ref targetScore, ref coin);
+
+            buffManager.ApplyStartBuffs();
+
+            currentSetCount = maxSetCount;
+            currentDropCount = maxDropCount;
+
+            scoreManager.SetScore();
+            cardManager.SetCardList();
+
+            AllUIUpdate();
+            isFirstDraw = true;
+            gameState = GameState.Draw;
+            setProcessState = SetProcessState.Idle;
+            shopManager.gameMaster = this;
+            shopManager.cardSpawner = cardSpawner;
+            buffManager.cardSpawner = cardSpawner;
+        }
+        else if (musicManager.gameData.isTutorial == true)
+        {
+            TutorialSet(); // 튜토리얼 세트로 진입
+            return;
+        }
+    }
+
+    public void TutorialSet()
+    {
+        // 튜토리얼 스테이지로 진입
+        tutorialSystem.SetActive(true);
+        targetScore = 100;
+        stageManager.SetTutorialStage(); // 튜토리얼 스테이지 타입 지정
         uiManager.UpdateBackgroundUI();
-        musicManager.Init(); // 음악 매니저 초기화s
-        scoreManager.Init(this); // 점수 매니저 초기화
+        musicManager.Init();
+        scoreManager.Init(this);
         uiManager.HideCollectorComboImages();
 
         maxSetCount = 3;
         maxDropCount = 3;
-        stageManager.Initialize();
+        stageManager.InitializeTutorial(); // 튜토리얼용 스테이지 순서 초기화
 
-        var stagePair = stageManager.DecideStageTypeAndUpdateImage();
-        if (stagePair.HasValue)
-        {
-            currentStageTypeX1 = stagePair.Value.x1;
-            currentStageTypeX2 = stagePair.Value.x2;
-            Debug.Log($"[GameMaster] 스테이지 타입 결정: x-1={currentStageTypeX1}, x-2={currentStageTypeX2}");
-
-            // x-1 스테이지에 해당하는 음악 재생
-            if (musicManager != null)
-                musicManager.PlayStageMusic(currentStageTypeX1);
-        }
-
-        targetScore = stageManager.GetTargetScore();
-        // 스테이지 효과 적용
+        // 튜토리얼 스테이지 효과 적용
         stageManager.ApplyStageEffect(scoreManager, cardManager, buffManager, ref targetScore, ref coin);
 
         buffManager.ApplyStartBuffs();
 
         currentSetCount = maxSetCount;
         currentDropCount = maxDropCount;
-
+        musicManager.PlayStageMusic(stageManager.stageType);
         scoreManager.SetScore();
         cardManager.SetCardList();
 
@@ -140,6 +186,7 @@ public class GameMaster : MonoBehaviour
         shopManager.gameMaster = this;
         shopManager.cardSpawner = cardSpawner;
         buffManager.cardSpawner = cardSpawner;
+        return;
     }
 
     public void AllUIUpdate()
@@ -337,9 +384,22 @@ public class GameMaster : MonoBehaviour
             if (currentStageIndexField != null)
                 currentStageIndexField.SetValue(stageManager, 0);
         }
-
+        // 구매한 캐릭터 카드 초기화
+        if (cardManager != null && cardManager.purchasedCardList != null)
+            cardManager.purchasedCardList.Clear();
+        for(int i = 0; i < buffManager.buffCardList.Count; i++)
+        {
+            Destroy(buffManager.buffCardList[i]);
+        }
+        buffManager.buffCardList.Clear();
+           
         // 게임 재시작
         StartGame();
+    }
+    public void PlusSetCount()
+    {
+        currentSetCount ++;
+        uiManager.UpdateCountUI(currentSetCount, maxSetCount, currentDropCount, maxDropCount);
     }
 
     public void OnSetButtonPressed()
@@ -399,6 +459,10 @@ public class GameMaster : MonoBehaviour
 
     public void OnNextStagePressed()
     {
+        if (stageManager.stageType == StageManager.StageType.Tutorial)
+        {
+             musicManager.gameData.isTutorial = false;
+        }
         shopManager.CloseShop();
         scoreManager.SetScore();
         uiManager.UpdateScoreUI(scoreManager.score, targetScore);
@@ -440,8 +504,16 @@ public class GameMaster : MonoBehaviour
     // 코인 관련 메서드
     public void AddCoin(int amount)
     {
-        coin += amount;
-        // 필요시 코인 UI 갱신
+        if (stageManager.stageType == StageManager.StageType.Tutorial)
+        {
+            return;
+        }
+        else
+        {
+            coin += amount;
+            // 필요시 코인 UI 갱신
+        }
+
         uiManager.UpdateCoinUI(coin);
     }
 
@@ -454,8 +526,16 @@ public class GameMaster : MonoBehaviour
 
     public void GetCoin(int amount)
     {
-        coin += amount;
-        // 필요시 코인 UI 갱신
+        if (stageManager.stageType == StageManager.StageType.Tutorial)
+        {
+            return;
+        }
+        else
+        {
+            coin += amount;
+            // 필요시 코인 UI 갱신
+        }
+
         uiManager.UpdateCoinUI(coin);
     }
 

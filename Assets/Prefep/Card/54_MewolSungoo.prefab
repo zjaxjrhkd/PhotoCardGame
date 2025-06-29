@@ -73,12 +73,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 8c637ff9667a48e4cbad32d57b93d4d3, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3731ed6e06a013649b3c6f26f578ac80, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.33, y: 2.93}
+  m_Size: {x: 1.8, y: 2.6}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -96,6 +96,7 @@ GameObject:
   - component: {fileID: 640331457347648247}
   - component: {fileID: 1684024087024689895}
   - component: {fileID: 9157111277336514647}
+  - component: {fileID: 8387586832288723879}
   m_Layer: 0
   m_Name: Data
   m_TagString: Untagged
@@ -180,7 +181,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uCE74\uB4DC \uC124\uBA85 \uC608\uC2DC"
+  cardInfo: "set \uD69F\uC218 +1"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -201,6 +202,18 @@ MonoBehaviour:
   characterType: 0
   CardCost: 3
   gameMaster: {fileID: 0}
+--- !u!114 &8387586832288723879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6579297294108217466}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0127d97341fc238458ad8dd00540b24a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8949536555947873314
 GameObject:
   m_ObjectHideFlags: 0

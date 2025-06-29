@@ -201,7 +201,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "Set\uC2DC Score + 100 / Vlup"
+  cardInfo: "Set\uC2DC Score + 100\n* Vlup *"
 --- !u!114 &3715635363082696233
 MonoBehaviour:
   m_ObjectHideFlags: 0

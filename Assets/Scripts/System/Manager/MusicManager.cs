@@ -14,6 +14,8 @@ public class MusicManager : MonoBehaviour
     public AudioClip razMusic;
     public AudioClip noiMusic;
     public AudioClip beldirMusic;
+    public AudioClip tutorialMusic;
+
 
     // SFX
     public AudioClip sfxCardSelect;
@@ -27,7 +29,7 @@ public class MusicManager : MonoBehaviour
     public AudioClip sfxCardEffect;
     public AudioClip sfxStageClear;
 
-    private GameData gameData; // GameData 참조용
+    public GameData gameData; // GameData 참조용
 
 
     public Slider volumeSlider; // 인스펙터에서 할당
@@ -89,6 +91,7 @@ public class MusicManager : MonoBehaviour
 
     public void PlayStageMusic(StageManager.StageType stageType)
     {
+        Debug.Log($"[MusicManager] StageType: {stageType}");
         AudioClip clip = null;
         switch (stageType)
         {
@@ -112,6 +115,9 @@ public class MusicManager : MonoBehaviour
                 break;
             case StageManager.StageType.Yasu:
                 clip = beldirMusic;
+                break;
+            case StageManager.StageType.Tutorial:
+                clip = tutorialMusic;
                 break;
         }
 

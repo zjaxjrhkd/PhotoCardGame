@@ -181,7 +181,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "Set\uC2DC Coin+1 / \uB7EC\uBE0C\uB808\uD130"
+  cardInfo: "Set\uC2DC Coin+1\n* LoveLetter *"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0

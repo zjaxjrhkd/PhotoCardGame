@@ -180,7 +180,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "Set\uC2DC Score + 100 / Vfes1"
+  cardInfo: "Set\uC2DC Score + 100\n* Vfes *"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0

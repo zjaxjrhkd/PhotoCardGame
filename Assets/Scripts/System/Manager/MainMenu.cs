@@ -56,7 +56,8 @@ public class MainMenu : MonoBehaviour
 
     public void OnClickTutorial()
     {
-        SceneManager.LoadScene("3.Tutoral");
+        gameData.isTutorial = true;
+        SceneManager.LoadScene("1.GameScene");
     }
 
     public void SetVolume(float value)

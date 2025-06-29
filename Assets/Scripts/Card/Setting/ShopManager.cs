@@ -54,7 +54,7 @@ public class ShopManager : MonoBehaviour
 
         // 2. 캐릭터 카드 6장 생성 (index: 1~57)
         int charMinIndex = 2;
-        int charMaxIndex = 58;
+        int charMaxIndex = 57;
         int charCount = 6;
         List<int> charIndices = Enumerable.Range(charMinIndex, charMaxIndex).OrderBy(x => Random.value).Take(charCount).ToList();
         Debug.Log($"[ShopManager] 랜덤 선택된 캐릭터 카드 인덱스(1~57): {string.Join(",", charIndices)}");
@@ -162,7 +162,7 @@ public class ShopManager : MonoBehaviour
 
         // --- 캐릭터카드 새로고침 (index: 1~57) ---
         int charMinIndex = 2;
-        int charMaxIndex = 58;
+        int charMaxIndex = 57;
         int charCount = 6;
         List<int> charIndices = Enumerable.Range(charMinIndex, charMaxIndex).OrderBy(x => Random.value).Take(charCount).ToList();
 

@@ -180,7 +180,7 @@ MonoBehaviour:
   isFlip: 0
   hoverUI: {fileID: 0}
   hoverText: {fileID: 0}
-  cardInfo: "\uD14C\uB9C8\uC5D0 \uC0C1\uAD00\uC5C6\uC774 \uC774\uB178\uBE4C \uC870\uD569"
+  cardInfo: "\uD14C\uB9C8\uC5D0 \uC0C1\uAD00\uC5C6\uC774 \n\uC774\uB178\uBE4C \uC870\uD569"
 --- !u!114 &9157111277336514647
 MonoBehaviour:
   m_ObjectHideFlags: 0

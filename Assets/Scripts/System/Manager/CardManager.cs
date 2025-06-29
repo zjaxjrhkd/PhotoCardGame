@@ -17,8 +17,15 @@ public class CardManager : MonoBehaviour
     public ScoreManager scoreManager;
     public GameObject otherUIObjects;
     public GameObject deckListParent;
+    public GameObject collectionList;
     private bool isDeckListAtOrigin = false;
+    private bool isColListAtOrigin = false;
+    public GameObject[] collectionGuideList;
+    private int currentGuideIndex = -1;
+    public GameObject nextButton;
+
     private GameMaster.GameState prevState;
+    
 
     public int defaltdeckCount = 54;
     public int deckCount;
@@ -114,8 +121,10 @@ public class CardManager : MonoBehaviour
         //구매 후 이동
         data.gameObject.transform.position = data.transform.position;
         data.gameObject.transform.DOMove(new Vector3(10f, -3f, -50f), 0.3f).SetEase(Ease.OutCubic);
-        
-//        Destroy(data.gameObject);
+        gameMaster.musicManager.PlayBuyBuffSFX();
+
+
+        //        Destroy(data.gameObject);
 
         // 구매 카드 리스트에만 추가
         purchasedCardList.Add(cardId);
@@ -394,6 +403,54 @@ public class CardManager : MonoBehaviour
             lastHoveredCard = null;
         }
     }
+
+    public void OnclickCollectionGuide()
+    {
+        if (gameMaster != null && gameMaster.musicManager != null)
+            gameMaster.musicManager.PlayUIClickSFX();
+
+        // 모든 가이드 오브젝트 비활성화
+        for (int i = 0; i < collectionGuideList.Length; i++)
+        {
+            if (collectionGuideList[i] != null)
+            {
+                collectionGuideList[i].SetActive(false);
+                collectionGuideList[i].transform.position = new Vector3(19f, 0f, 0f);
+            }
+        }
+
+        // 다음 가이드 인덱스 계산
+        if (currentGuideIndex < collectionGuideList.Length - 1)
+        {
+            currentGuideIndex++;
+            var guide = collectionGuideList[currentGuideIndex];
+            if (guide != null)
+            {
+                guide.SetActive(true);
+                guide.transform.position = new Vector3(0f, 0f, -150f);
+            }
+
+            // 첫 가이드 진입 시 상태 저장 및 Option 상태로 전환, otherUIObjects 비활성화
+            if (currentGuideIndex == 0)
+            {
+                nextButton.SetActive(true);
+                prevState = gameMaster.gameState;
+                gameMaster.gameState = GameMaster.GameState.Option;
+                if (otherUIObjects != null)
+                    otherUIObjects.SetActive(false);
+            }
+        }
+        else
+        {
+            // 마지막 가이드에서 버튼을 누르면 모두 비활성화 및 상태 복귀, otherUIObjects 활성화
+            currentGuideIndex = -1;
+            gameMaster.gameState = prevState;
+            if (otherUIObjects != null)
+                otherUIObjects.SetActive(true);
+            nextButton.SetActive(false);
+        }
+    }
+
 
     public void OnClickCreateDeckListObjects()
     {

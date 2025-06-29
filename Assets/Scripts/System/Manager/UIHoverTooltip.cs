@@ -40,11 +40,13 @@ public class UIHoverTooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     private StageManager stageManager;
     private ScoreManager scoreManager;
+    private CardManager cardManager;
 
     private void Start()
     {
         stageManager = FindObjectOfType<StageManager>();
         scoreManager = FindObjectOfType<ScoreManager>();
+        cardManager = FindObjectOfType<CardManager>();
         if (hoverUI != null)
             hoverUI.SetActive(false);
     }
@@ -69,10 +71,10 @@ public class UIHoverTooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitH
             hoverUI.SetActive(false);
     }
 
-    // 콤보/스테이지/기본 info 반환 + 콤보 점수 표시
+
     private string GetTooltipInfo()
     {
-        // 1. 콤보 이름이 지정되어 있으면 콤보 info + 점수 우선
+        // 1. 콤보 이름이 지정되어 있으면 콤보 info + 점수 + 보유 개수/전체 개수
         if (!string.IsNullOrEmpty(comboName))
         {
             string comboDesc = null;
@@ -88,17 +90,45 @@ public class UIHoverTooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitH
                 }
             }
 
-            // ScoreManager에서 콤보 점수 가져오기
+            // ScoreManager에서 콤보 점수와 CardManager에서 보유 개수 가져오기
             int comboScore = 0;
-            if (scoreManager != null && scoreManager.lastComboScores != null)
+            int ownedCount = 0;
+            int totalCount = 0;
+            if (scoreManager != null)
             {
-                scoreManager.lastComboScores.TryGetValue(comboName, out comboScore);
+                // 점수
+                if (scoreManager.lastComboScores != null)
+                    scoreManager.lastComboScores.TryGetValue(comboName, out comboScore);
+
+                // 전체 개수
+                if (scoreManager.collectors != null && scoreManager.collectors.ContainsKey(comboName))
+                    totalCount = scoreManager.collectors[comboName].Count;
+            }
+
+            // 보유 개수: CardManager에서 현재 checkCardList 기준으로 콜렉터별 ownedCount 계산
+            if (cardManager != null && scoreManager != null)
+            {
+                var combos = cardManager.GetCompletedCollectorCombos(scoreManager);
+                foreach (var combo in combos)
+                {
+                    if (combo.collectorName == comboName)
+                    {
+                        ownedCount = combo.ownedCount;
+                        break;
+                    }
+                }
+            }
+
+            string countInfo = "";
+            if (totalCount > 0)
+            {
+                countInfo = $" ({ownedCount}/{totalCount})";
             }
 
             if (comboDesc != null)
-                return $"{comboDesc}\n점수: {comboScore}";
+                return $"{comboDesc}\n점수: {comboScore}{countInfo}";
             else
-                return $"{info}\n점수: {comboScore}";
+                return $"{info}\n점수: {comboScore}{countInfo}";
         }
 
         // 2. 스테이지별 info

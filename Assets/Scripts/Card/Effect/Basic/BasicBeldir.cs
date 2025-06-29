@@ -22,7 +22,8 @@ public class BasicBeldir : MonoBehaviour, ICardEffect
         {
             if (gameMaster != null && gameMaster.musicManager != null)
                 gameMaster.musicManager.PlayGetCoinSFX();
-            gameMaster.coin++; // 코인 증가
+            
+            gameMaster.AddCoin(1); // 코인 증가
         }
     }
 }
